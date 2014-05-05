@@ -41,6 +41,7 @@ function klotski()
 {
 	var dom_canvas = document.getElementById( "canvas_here" );
 	var canv = dom_canvas.getContext( "2d" );
+	var bound = new Board( 4, 5 ); //218, 270 );
 	//init();
 	redraw();
 
@@ -74,7 +75,6 @@ function klotski()
 
 	function dr_block( x_p, y_p, x_small, y_small, color )
 	{
-		//stub( "block drawing", 20 );
 		var defaultSide = 40;
 		var x_l = ( x_small ) ? defaultSide : defaultSide * 2 + 11;
 		var y_l = ( y_small ) ? defaultSide : defaultSide * 2 + 11;
@@ -121,6 +121,16 @@ function klotski()
 		dr_block( 87, 191, !small, !small, "green" ); //dr_big(  );
 	}
 
+	function dr_cursor( xP, yP )
+	{
+		var defaultSide = 49;
+		canv.beginPath();
+		canv.rect( xP, yP, defaultSide, defaultSide ); // x y
+		canv.lineWidth = "2";
+		canv.strokeStyle = "cyan";
+		canv.stroke();
+	}
+
 	function redraw()
 	{
 		//stub( "all redrawing", 0 );
@@ -128,14 +138,50 @@ function klotski()
 		//dr_goal_area();
 		vis_test_blocks();
 		vis_test_bigger();
+		// 87:82 139:134 = x-5 y-5
+		//termin.log( bound.spot( 1 ) );
+		//termin.log( bound.de );
+		dr_cursor( 82, 30 ); // I want to be able to say v.m(0), v.m(1) );
 		return;
 	}
 
-function board( width, depth )
-{
-this.de = depth; // in case I need to recover the bounds
-this.spots = new Array( width * depth );
-}
+	function Board( width, depth )
+	{
+		this.cursor = { x:0, y:0 };
+		this.spots = new Array( new Array(depth),
+			new Array(depth), new Array(depth), new Array(depth) ); // fix
+
+		function curs( pos ) // 1-4
+		{
+			return spot( pos ) - 5;
+		}
+
+		function spot( pos ) // 1-4, 0 only for y
+		{
+			switch( pos )
+			{
+			default:
+			case 0:
+				return 35;
+			case 1:
+				return 87;
+			case 2:
+				return 139;
+			case 3:
+				return 191;
+			case 4:
+				return 243;
+			}
+			return 5;
+		/*
+		87:35 139:35 191:35 243:35
+		87:87 139:87 191:87 243:87
+		87:139 139:139 191:139 243:139
+		87:191 139:191 191:191 243:191
+		87:243 139:243 191:243 243:243
+		*/
+		}
+	}
 }
 
 
