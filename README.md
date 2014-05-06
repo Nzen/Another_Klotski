@@ -1,7 +1,7 @@
 ## Klotski game via js canvas
 
-![what klotski looks like](https://www.flickr.com/photos/18099895@N06/13278186275/in/photostream/)
-(img via flickr)
+![what klotski looks like](https://farm6.staticflickr.com/5491/13933588087_01571368ea_s.jpg)
+(img [via flickr](https://www.flickr.com/photos/18099895@N06/13933588087))
 
 This isn't yet at the stage where users interact with it. Perhaps next commit.
 
