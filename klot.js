@@ -41,124 +41,165 @@ function klotski()
 {
 	var dom_canvas = document.getElementById( "canvas_here" );
 	var canv = dom_canvas.getContext( "2d" );
-	var bound = new Board( 4, 5 ); //218, 270 );
+	var bound = new Board( 4, 5 );
+	var pix = new Screen( 218, 270 );
 	//init();
 	redraw();
 
 	/* function init()
 	{
-		I already want to extract edge knowledge
 	} */
-
-	function stub( what, pos )
-	{
-		canv.fillStyle = "#FF0330";
-		canv.font = "32px _sans";
-		canv.fillText( what, 20, 150 + pos * 2 );
-		termin.log( what + " isn't implemented :P" );
-	}
-
-	function dr_edge()
-	{
-		// background-color:#0A0A29;
-		canv.beginPath();
-		canv.rect( 25, 25, 218, 270 ); // x y
-		canv.lineWidth="2";
-		canv.strokeStyle="grey";
-		canv.stroke();
-	}
-
-	function dr_goal_area()
-	{
-		stub( "goal area", 10 );
-	}
-
-	function dr_block( x_p, y_p, x_small, y_small, color )
-	{
-		var defaultSide = 40;
-		var x_l = ( x_small ) ? defaultSide : defaultSide * 2 + 11;
-		var y_l = ( y_small ) ? defaultSide : defaultSide * 2 + 11;
-		canv.beginPath();
-		canv.rect( x_p, y_p, x_l, y_l ); // x y
-		canv.lineWidth = "3";
-		canv.strokeStyle = color;
-		canv.stroke();
-	}
-
-	function vis_test_blocks()
-	{
-		//var coord = "";
-		var small = true;
-		var startP = 35;
-		var dist = 52;
-		var currY = startP;
-		for ( var row = 1; row <= 5; row++ )
-		{
-			var currX = startP;
-			for ( var col = 1; col <= 4; col++ )
-			{
-				dr_block( currX, currY, small, small, "purple" );
-				currX += dist
-				//coord += currX + ":" + currY + " ";
-			}
-			currY += dist;
-		}
-		//termin.log( coord );
-		/*
-		87:35 139:35 191:35 243:35
-		87:87 139:87 191:87 243:87
-		87:139 139:139 191:139 243:139
-		87:191 139:191 191:191 243:191
-		87:243 139:243 191:243 243:243
-		*/
-	}
-
-	function vis_test_bigger()
-	{
-		var small = true;
-		dr_block( 87, 35, !small, small, "red" ); // dr_tall(  );
-		dr_block( 139, 139, small, !small, "white" ); //dr_wide(  );
-		dr_block( 87, 191, !small, !small, "green" ); //dr_big(  );
-	}
-
-	function dr_cursor( xP, yP )
-	{
-		var defaultSide = 49;
-		canv.beginPath();
-		canv.rect( xP, yP, defaultSide, defaultSide ); // x y
-		canv.lineWidth = "2";
-		canv.strokeStyle = "cyan";
-		canv.stroke();
-	}
 
 	function redraw()
 	{
-		//stub( "all redrawing", 0 );
-		dr_edge();
-		//dr_goal_area();
-		vis_test_blocks();
-		vis_test_bigger();
-		// 87:82 139:134 = x-5 y-5
-		//termin.log( bound.spot( 1 ) );
-		//termin.log( bound.de );
-		dr_cursor( 82, 30 ); // I want to be able to say v.m(0), v.m(1) );
+		bound.render();
+		//vis_test_blocks();
+		//vis_test_bigger();
 		return;
 	}
 
-	function Board( width, depth )
+	function Cflag()
 	{
-		this.cursor = { x:0, y:0 };
-		this.spots = new Array( new Array(depth),
-			new Array(depth), new Array(depth), new Array(depth) ); // fix
+		this.o_ = 0;
+		this.s_ = 1
+		this.tt = 12; this.tb = 13;
+		this.wl = 24; this.wr = 25;
+		this.nw = 36; this.ne = 37; this.sw = 38; this.se = 39;
+	}
 
-		function curs( pos ) // 1-4
+	function Board( width, depth ) // hm doesn't use wid;depth
+	{
+		// interpretation order demands this be first :\
+		this.fill_board = function()
 		{
-			return spot( pos ) - 5;
+			var p = new Cflag();
+			var grid = new Array(
+				[p.tt, p.nw, p.ne, p.tt],
+				[p.tb, p.sw, p.se, p.tb],
+				[p.tt, p.wl, p.wr, p.tt],
+				[p.tb, p.s_, p.s_, p.tb],
+				[p.s_, p.o_, p.o_, p.s_]
+			);
+			return grid;
 		}
 
-		function spot( pos ) // 1-4, 0 only for y
+		// properties
+		this.cursor = { x:0, y:0 };
+		this.tiles = this.fill_board()
+
+		this.render = function()
 		{
-			switch( pos )
+			pix.dr_edge();
+			pix.dr_goal_area();
+			pix.dr_cursor( pix.cur2_p(2), pix.cur2_p(1) );
+			this.dr_all_blocks();
+		}
+
+		this.dr_all_blocks = function()
+		{
+			var small = true;
+			var p = new Cflag();
+			var currT = 0;
+			for ( var ro = 0; ro < this.tiles.length; ro++ )
+			{
+				for ( var cl = 0; cl < this.tiles[ro].length; cl++ )
+				{
+					currT = this.tiles[ro][cl];
+					switch( currT )
+					{
+					default:
+						continue;
+					case p.s_:
+						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), small, small, "purple" )
+						break;
+					
+					case p.tt:
+						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), small, !small, "green" )
+						break;
+					case p.wl:
+						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), !small, small, "blue" )
+						break;
+					case p.nw:
+						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), !small, !small, "red" )
+					}
+				}
+			}
+		}
+	}
+
+	function Screen( width, height )
+	{
+		this.w = width; // probably don't need these
+		this.h = height;
+
+		this.dr_block = function( x_p, y_p, x_small, y_small, color )
+		{
+			var defaultSide = 40;
+			var x_l = ( x_small ) ? defaultSide : defaultSide * 2 + 11;
+			var y_l = ( y_small ) ? defaultSide : defaultSide * 2 + 11;
+			canv.beginPath();
+			canv.rect( x_p, y_p, x_l, y_l ); // x y
+			canv.lineWidth = "3";
+			//canv.strokeStyle = color;
+			canv.fillStyle = color;
+			canv.fill();
+		}
+
+		this.dr_cursor = function( xP, yP )
+		{
+			var defaultSide = 49;
+			canv.beginPath();
+			canv.rect( xP, yP, defaultSide, defaultSide ); // x y
+			canv.lineWidth = "2";
+			canv.strokeStyle = "cyan";
+			canv.stroke();
+		}
+
+		this.dr_edge = function()
+		{
+			// background-color:#0A0A29;
+			canv.beginPath();
+			canv.rect( 25, 25, 218, 270 ); // x y
+			canv.lineWidth="2";
+			canv.strokeStyle="grey";
+			canv.stroke();
+		}
+		
+		this.dr_gline = function( sX, sY, eX, eY )
+		{
+			canv.beginPath();
+			canv.lineWidth="1";
+			canv.strokeStyle="red";
+			canv.moveTo(sX, sY);
+			canv.lineTo(eX, eY);
+			canv.stroke();
+		}
+
+		this.dr_goal_area = function()
+		{
+			// lower triangle
+			var eX = 179;
+			var sY = 282;
+			var eY = 191;
+			for ( sX = 88; sX < eX; sX += 10 )
+			{
+				this.dr_gline( sX, sY, eX, eY );
+				eY += 10;
+			}
+			// upper triangle
+			sX = 88;
+			sY = 270;
+			eY = 191;
+			for ( eX = 169; sX < eX; eX -= 10 )
+			{
+				this.dr_gline( sX, sY, eX, eY );
+				sY -= 10;
+			}
+		}
+
+		this.c2p = function( coord )
+		{
+			switch( coord )		// these will move to a rendering thing probably
 			{
 			default:
 			case 0:
@@ -173,26 +214,22 @@ function klotski()
 				return 243;
 			}
 			return 5;
-		/*
-		87:35 139:35 191:35 243:35
-		87:87 139:87 191:87 243:87
-		87:139 139:139 191:139 243:139
-		87:191 139:191 191:191 243:191
-		87:243 139:243 191:243 243:243
-		*/
+			/*
+			35:35 87:35 139:35 191:35
+			35:87 87:87 139:87 191:87
+			35:139 87:139 139:139 191:139
+			35:191 87:191 139:191 191:191
+			35:243 87:243 139:243 191:243
+			*/
+		}
+		
+		this.cur2_p = function( coord )
+		{
+			return this.c2p( coord ) - 5;
 		}
 	}
+
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
