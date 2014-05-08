@@ -43,19 +43,38 @@ function klotski()
 	var canv = dom_canvas.getContext( "2d" );
 	var bound = new Board( 4, 5 );
 	var pix = new Screen( 218, 270 );
-	//init();
-	redraw();
+	var ky = new KeyValues();
+	var cornr = new Cflag(); // determining shape
+	bound.render();//redraw();
+	window.addEventListener( "keydown", arrow_pressed, true );
 
-	/* function init()
+	function KeyValues()
 	{
-	} */
+		this.l = 37; this.u = 38;
+		this.r = 39; this.d = 40;
+	}
 
-	function redraw()
+	function arrow_pressed( ev )
 	{
-		bound.render();
-		//vis_test_blocks();
-		//vis_test_bigger();
-		return;
+		var press = ev || window.event;
+		var keyCode = press.keyCode;
+		switch( keyCode )
+		{
+			// http://unixpapa.com/js/key.html
+			// left 37, up 38, right 39, down 40
+			case 37:
+				bound.try_cursor( ky.l );
+				break;
+			case 38:
+				bound.try_cursor( ky.u );
+				break;
+			case 39:
+				bound.try_cursor( ky.r );
+				break;
+			case 40:
+				bound.try_cursor( ky.d );
+				break;
+		}
 	}
 
 	function Cflag()
@@ -73,12 +92,11 @@ function klotski()
 		this.fill_board = function()
 		{
 			var p = new Cflag();
-			var grid = new Array(
-				[p.tt, p.nw, p.ne, p.tt],
-				[p.tb, p.sw, p.se, p.tb],
-				[p.tt, p.wl, p.wr, p.tt],
-				[p.tb, p.s_, p.s_, p.tb],
-				[p.s_, p.o_, p.o_, p.s_]
+			var grid = new Array( 	// transpose permits tiles[x][y]
+				[p.tt, p.tb, p.tt, p.tb, p.s_],
+				[p.nw, p.sw, p.wl, p.s_, p.o_],
+				[p.ne, p.se, p.wr, p.s_, p.o_],
+				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);
 			return grid;
 		}
@@ -91,62 +109,211 @@ function klotski()
 		{
 			pix.dr_edge();
 			pix.dr_goal_area();
-			pix.dr_cursor( pix.cur2_p(2), pix.cur2_p(1) );
-			this.dr_all_blocks();
+			pix.dr_cursor( this.cursor.x, this.cursor.y );
+			this.all_blocks();
 		}
 
-		this.dr_all_blocks = function()
+		this.all_blocks = function()
+		{
+			var currT = 0;
+			for ( var xx = 0; xx < this.tiles.length; xx++ )
+			{
+				for ( var yy = 0; yy < this.tiles[xx].length; yy++ )
+				{
+					currT = this.tiles[xx][yy];
+					this.only_top_corner( currT, xx, yy );
+				}
+			}
+		}
+
+		this.only_top_corner = function( type, xx, yy )
 		{
 			var small = true;
 			var p = new Cflag();
-			var currT = 0;
-			for ( var ro = 0; ro < this.tiles.length; ro++ )
+			switch( type )
 			{
-				for ( var cl = 0; cl < this.tiles[ro].length; cl++ )
+			default:
+				return;
+			case p.o_:
+				if ( this.in_goal_area( xx, yy ) )
+					return;
+				else
+					pix.dr_block( xx, yy, small, small, "#0A0A29" );// background-color
+				break;
+			case p.s_:
+				pix.dr_block( xx, yy, small, small, "purple" );
+				break;
+			case p.tt:
+				pix.dr_block( xx, yy, small, !small, "green" );
+				break;
+			case p.wl:
+				pix.dr_block( xx, yy, !small, small, "blue" );
+				break;
+			case p.nw:
+				pix.dr_block( xx, yy, !small, !small, "red" );
+			}
+		}
+
+		this.try_cursor = function( arrow )
+		{
+			if ( this.move_valid( arrow ) )
+			{
+				var justCursor = true;
+				var oldX = this.cursor.x, oldY = this.cursor.y;
+				this.apply_cursor_move( arrow );
+				this.render_change( justCursor, oldX, oldY );
+			}
+			//else
+				//termin.log( " cursor hit edge" ); // or fading red line?
+		}
+
+		this.move_valid = function( arrow )
+		{
+			if ( arrow === ky.l )
+				return this.cursor.x > 0;
+			else if ( arrow === ky.u )
+				return this.cursor.y > 0;
+			else if ( arrow === ky.r )
+				return this.cursor.x < this.tiles.length - 1;
+			else if ( arrow === ky.d )
+				return this.cursor.y < this.tiles[0].length - 1;
+		}
+
+		this.apply_cursor_move = function( arrow )
+		{
+			if ( arrow === ky.l )
+				this.cursor.x -= 1;
+			else if ( arrow === ky.u )
+				this.cursor.y -= 1;
+			else if ( arrow === ky.r )
+				this.cursor.x += 1;
+			else if ( arrow === ky.d )
+				this.cursor.y += 1;
+		}
+		
+		this.render_change = function( justCursor, oldX, oldY )
+		{
+			if ( justCursor )
+			{
+				pix.erase_cursor( oldX, oldY );
+				pix.dr_cursor( this.cursor.x, this.cursor.y );
+				this.redraw_affected( oldX, oldY );
+			}
+			// else it will be the whole block
+		}
+
+		this.in_goal_area = function( cX, cY )
+			{	return ( cX > 0 && cX < 3 ) && ( cY > 2 ); }
+
+		this.redraw_affected = function( coorX, coorY )
+		{
+			function same_shape( a, b ) // later optimization
+			{	return a === b; }
+			function s_type( part )
+			{
+				switch( part )
 				{
-					currT = this.tiles[ro][cl];
-					switch( currT )
-					{
-					default:
-						continue;
-					case p.s_:
-						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), small, small, "purple" )
-						break;
-					
-					case p.tt:
-						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), small, !small, "green" )
-						break;
-					case p.wl:
-						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), !small, small, "blue" )
-						break;
-					case p.nw:
-						pix.dr_block( pix.c2p( cl ), pix.c2p( ro ), !small, !small, "red" )
-					}
+				default:
+				case cornr.o_:
+				case cornr.s_:
+				case cornr.tt:
+				case cornr.wl:
+				case cornr.nw:
+					return part;
+				case cornr.tb:
+					return cornr.tt;
+				case cornr.wr:
+					return cornr.wl;
+				case cornr.ne:
+				case cornr.sw:
+				case cornr.se:
+					return cornr.nw;
 				}
+			}
+			function topCorner( type, sideCoor, isX )
+			{
+				switch( type )
+				{
+				default:
+				case cornr.o_:
+				case cornr.s_:
+				case cornr.tt:
+				case cornr.wl:
+				case cornr.nw:
+					return sideCoor;
+				case cornr.tb:
+				case cornr.sw:
+					return ( !isX ) ? sideCoor - 1 : sideCoor;
+				case cornr.wr:
+				case cornr.ne:
+					return ( isX ) ? sideCoor - 1 : sideCoor;
+				case cornr.se:
+					return sideCoor - 1;
+				}
+			}
+			function redraw( which, cX, cY )
+			{
+				var isX = true;
+				var cX = topCorner( which, cX, isX );
+				var cY = topCorner( which, cY, !isX );
+				which = s_type( which );
+				var small = true;
+				bound.only_top_corner( which, cX, cY );
+			}
+			function redraw_goal_blocks()
+			{
+				// unrolled loop
+				bound.only_top_corner( bound.tiles[1][3], 1, 3 ); // we've left Board-space
+				bound.only_top_corner( bound.tiles[2][3], 2, 3 );
+				bound.only_top_corner( bound.tiles[1][4], 1, 4 );
+				bound.only_top_corner( bound.tiles[2][4], 2, 4 );
+			}
+			//
+			// redraw_affected() BEGINS
+			var prevShape = this.tiles[coorX][coorY];
+			var currShape = this.tiles[this.cursor.x][this.cursor.y];
+			if ( bound.in_goal_area( coorX, coorY ) || bound.in_goal_area( this.cursor.x, this.cursor.y ) )
+			{
+				// redraw the whole goal area
+				pix.dr_block( 1, 3, false, false, "#0A0A29" );// blank out goal
+				pix.dr_goal_area();
+				redraw_goal_blocks();
+				if ( !bound.in_goal_area( coorX, coorY ) ) // sigh
+					redraw( prevShape, coorX, coorY );
+				else if ( !bound.in_goal_area( coorX, coorY ) )
+					redraw( currShape, this.cursor.x, this.cursor.y );
+			}
+			else
+			{
+				redraw( prevShape, coorX, coorY );
+				redraw( currShape, this.cursor.x, this.cursor.y );
 			}
 		}
 	}
 
-	function Screen( width, height )
+	function Screen( width, height)
 	{
-		this.w = width; // probably don't need these
+		this.w = width;
 		this.h = height;
 
-		this.dr_block = function( x_p, y_p, x_small, y_small, color )
+		this.dr_block = function( xC, yC, xSmall, ySmall, color )
 		{
+			var xP = this.c2p( xC );
+			var yP = this.c2p( yC );
 			var defaultSide = 40;
-			var x_l = ( x_small ) ? defaultSide : defaultSide * 2 + 11;
-			var y_l = ( y_small ) ? defaultSide : defaultSide * 2 + 11;
+			var xL = ( xSmall ) ? defaultSide : defaultSide * 2 + 11;
+			var yL = ( ySmall ) ? defaultSide : defaultSide * 2 + 11;
 			canv.beginPath();
-			canv.rect( x_p, y_p, x_l, y_l ); // x y
+			canv.rect( xP, yP, xL, yL ); // x y
 			canv.lineWidth = "3";
-			//canv.strokeStyle = color;
 			canv.fillStyle = color;
 			canv.fill();
 		}
 
-		this.dr_cursor = function( xP, yP )
+		this.dr_cursor = function( xC, yC )
 		{
+			var xP = this.cur2p( xC );
+			var yP = this.cur2p( yC );
 			var defaultSide = 49;
 			canv.beginPath();
 			canv.rect( xP, yP, defaultSide, defaultSide ); // x y
@@ -155,35 +322,46 @@ function klotski()
 			canv.stroke();
 		}
 
+		this.erase_cursor = function( xC, yC )
+		{
+			var xP = this.cur2p( xC );
+			var yP = this.cur2p( yC );
+			var defaultSide = 49;
+			canv.beginPath();
+			canv.rect( xP, yP, defaultSide, defaultSide ); // x y
+			canv.lineWidth = "3";
+			canv.strokeStyle = "#0A0A29"; // is background-color
+			canv.stroke();
+		}
+
 		this.dr_edge = function()
 		{
-			// background-color:#0A0A29;
 			canv.beginPath();
-			canv.rect( 25, 25, 218, 270 ); // x y
+			canv.rect( 25, 25, this.w, this.h );
 			canv.lineWidth="2";
 			canv.strokeStyle="grey";
 			canv.stroke();
 		}
 		
-		this.dr_gline = function( sX, sY, eX, eY )
-		{
-			canv.beginPath();
-			canv.lineWidth="1";
-			canv.strokeStyle="red";
-			canv.moveTo(sX, sY);
-			canv.lineTo(eX, eY);
-			canv.stroke();
-		}
-
 		this.dr_goal_area = function()
 		{
+			function dr_gline( sX_, sY_, eX_, eY_ )
+			{
+				canv.beginPath();
+				canv.lineWidth="1";
+				canv.strokeStyle="red";
+				canv.moveTo(sX_, sY_);
+				canv.lineTo(eX_, eY_);
+				canv.stroke();
+			}
+
 			// lower triangle
-			var eX = 179;
+			var eX = 179; // fix to c2p ratio?
 			var sY = 282;
 			var eY = 191;
 			for ( sX = 88; sX < eX; sX += 10 )
 			{
-				this.dr_gline( sX, sY, eX, eY );
+				dr_gline( sX, sY, eX, eY );
 				eY += 10;
 			}
 			// upper triangle
@@ -192,7 +370,7 @@ function klotski()
 			eY = 191;
 			for ( eX = 169; sX < eX; eX -= 10 )
 			{
-				this.dr_gline( sX, sY, eX, eY );
+				dr_gline( sX, sY, eX, eY );
 				sY -= 10;
 			}
 		}
@@ -223,17 +401,10 @@ function klotski()
 			*/
 		}
 		
-		this.cur2_p = function( coord )
+		this.cur2p = function( coord )
 		{
 			return this.c2p( coord ) - 5;
 		}
 	}
 
 }
-
-
-
-
-
-
-

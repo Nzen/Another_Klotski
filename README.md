@@ -1,15 +1,15 @@
 ## Klotski game via js canvas
 
-![what klotski looks like](https://farm6.staticflickr.com/5491/13933588087_01571368ea_s.jpg)
+![what klotski looks like](https://farm6.staticflickr.com/5491/13933588087_01571368ea_m_d.jpg)
 (img [via flickr](https://www.flickr.com/photos/18099895@N06/13933588087))
 
-This isn't yet at the stage where users interact with it. Perhaps next commit.
+Currently: Move a cursor around a klotski board. Eventually you can play the game, but not yet.
 
 ### intended evolution
 
 * ~~draw board & pieces~~
 * ~~draw cursor~~
-* move cursor with arrow keys
+* ~~move cursor with arrow keys~~
 * move piece with wasd, by rules
 * check win condition
 * move count? smarter move count?
