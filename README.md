@@ -15,3 +15,5 @@ Currently: Move a cursor around a klotski board. Eventually you can play the gam
 * move count? smarter move count?
 * solver for hints?
 * win sound?
+
+Released under [MIT license](http://choosealicense.com/licenses/mit/). You know, because I didn't invent klotski.

@@ -1,6 +1,7 @@
 
 // Nicholas Prado
 // a reimplementation of the sliding block puzzle called Klotski
+// MIT license as described at http://choosealicense.com/licenses/mit/
 
 /* intended evolution
 draw board & pieces
@@ -47,11 +48,14 @@ function klotski()
 	var cornr = new Cflag(); // determining shape
 	bound.render();//redraw();
 	window.addEventListener( "keydown", arrow_pressed, true );
+	window.addEventListener( "keypress", wasd_pressed, true );
 
 	function KeyValues()
 	{
 		this.l = 37; this.u = 38;
 		this.r = 39; this.d = 40;
+		this.L = 0; this.U = 1;
+		this.R = 2; this.D = 3;
 	}
 
 	function arrow_pressed( ev )
@@ -77,6 +81,22 @@ function klotski()
 		}
 	}
 
+	function wasd_pressed( ev )
+	{
+		var keyPressed = String.fromCharCode( ev.keyCode );
+		//termin.log("key=" + keyPressed);
+		if ( keyPressed === 'a' )
+			bound.try_block( ky.L );
+		else if ( keyPressed === 'w' )
+			bound.try_block( ky.U );
+		else if ( keyPressed === 'd' )
+			bound.try_block( ky.R );
+		else if ( keyPressed === 's' )
+			bound.try_block( ky.D );
+		else
+			termin.log("another pressed");
+	}
+
 	function Cflag()
 	{
 		this.o_ = 0;
@@ -84,6 +104,32 @@ function klotski()
 		this.tt = 12; this.tb = 13;
 		this.wl = 24; this.wr = 25;
 		this.nw = 36; this.ne = 37; this.sw = 38; this.se = 39;
+		this.str = function( some )
+		{
+			switch( some )
+			{
+			case this.o_:
+				return "__";
+			case this.s_:
+				return "s_";
+			case this.tt:
+				return "tt";
+			case this.tb:
+				return "tb";
+			case this.wl:
+				return "wl";
+			case this.wr:
+				return "wr";
+			case this.nw:
+				return "nw";
+			case this.ne:
+				return "ne";
+			case this.sw:
+				return "sw";
+			case this.se:
+				return "se";
+			}
+		}
 	}
 
 	function Board( width, depth ) // hm doesn't use wid;depth
@@ -107,13 +153,14 @@ function klotski()
 
 		this.render = function()
 		{
+			pix.blank_board();
 			pix.dr_edge();
 			pix.dr_goal_area();
 			pix.dr_cursor( this.cursor.x, this.cursor.y );
-			this.all_blocks();
+			this.all_blocks_dr();
 		}
 
-		this.all_blocks = function()
+		this.all_blocks_dr = function()
 		{
 			var currT = 0;
 			for ( var xx = 0; xx < this.tiles.length; xx++ )
@@ -121,12 +168,12 @@ function klotski()
 				for ( var yy = 0; yy < this.tiles[xx].length; yy++ )
 				{
 					currT = this.tiles[xx][yy];
-					this.only_top_corner( currT, xx, yy );
+					this.top_corner_dr( currT, xx, yy );
 				}
 			}
 		}
 
-		this.only_top_corner = function( type, xx, yy )
+		this.top_corner_dr = function( type, xx, yy )
 		{
 			var small = true;
 			var p = new Cflag();
@@ -158,39 +205,152 @@ function klotski()
 		{
 			if ( this.move_valid( arrow ) )
 			{
-				var justCursor = true;
+				var justCursor = true, isX = true;
 				var oldX = this.cursor.x, oldY = this.cursor.y;
-				this.apply_cursor_move( arrow );
+				this.cursor.x = this.moved_coord( arrow, this.cursor.x, isX );
+				this.cursor.y = this.moved_coord( arrow, this.cursor.y, !isX );
+				//this.apply_cursor_move( arrow );
 				this.render_change( justCursor, oldX, oldY );
 			}
 			//else
 				//termin.log( " cursor hit edge" ); // or fading red line?
 		}
 
+		this.try_block = function( dir )
+		{
+				// FIX, assumes that cursor is on the leading edge of the shape
+			function one_block_wide_in( dir, type )
+			{
+				switch( type )
+				{
+				case cornr.s_:
+					return true;
+				case cornr.tt:
+				case cornr.tb:
+					return ( dir === ky.U || dir === ky.D );
+				case cornr.wl:
+				case cornr.wr:
+					return ( dir === ky.L || dir === ky.R );
+				default: // ie square
+					return false;
+				}
+			}
+			function second_unblocked( dir, type )
+			{
+				return false; // FIX from stub
+			}
+			function unblocked( dir )
+			{
+				// sq ta wi s o
+				var xxx = true;
+				var anX = bound.moved_coord(dir, bound.cursor.x, xxx);
+				var anY = bound.moved_coord(dir, bound.cursor.y, !xxx);
+				var startType = bound.tiles[ bound.cursor.x ][ bound.cursor.y ];
+				var endType = bound.tiles[ anX ][ anY ];
+				termin.log( cornr.str(endType) );
+				if ( endType == cornr.o_ )
+					if ( one_block_wide_in( dir, startType ) )
+						return true;
+					else
+						return second_unblocked( dir, startType );
+				else
+					return false;
+			}
+			function swap_rest_of_shape( dir, crsType )
+			{
+				var _x = bound.cursor.x;
+				var _y = bound.cursor.y;
+				switch( crsType )
+				{
+				case cornr.tt:
+					_y++;
+					break;
+				case cornr.tb:
+					_y--;
+					break;
+				case cornr.wl:
+					_x++;
+					break;
+				case cornr.wr:
+					_x--;
+					break;
+				default:
+					return swap_square( dir ); // early exit :B
+				}
+				bound.swap_block( _x, _y, dir );
+			}
+			// BEGINS
+			//termin.log("trying block");
+			if ( !this.move_valid( dir ) ){termin.log("invalid cursor");
+				return;}termin.log("valid cursor");
+			if ( unblocked( dir ) )
+			{
+			termin.log("unblocked");
+				var crsType = this.tiles[ this.cursor.x ][ this.cursor.y ];
+				this.swap_block( this.cursor.x, this.cursor.y, dir );
+				if ( crsType != cornr.s_ )
+					swap_rest_of_shape( dir, crsType );
+				this.apply_cursor_move( dir );
+				this.render(); //_change();
+			}
+		}
+
 		this.move_valid = function( arrow )
 		{
-			if ( arrow === ky.l )
-				return this.cursor.x > 0;
-			else if ( arrow === ky.u )
+			if ( arrow === ky.l || arrow === ky.L ){termin.log("curs > 0 :: " + (this.cursor.x > 0));
+				return this.cursor.x > 0;}
+			else if ( arrow === ky.u || arrow === ky.U )
 				return this.cursor.y > 0;
-			else if ( arrow === ky.r )
+			else if ( arrow === ky.r || arrow === ky.R )
 				return this.cursor.x < this.tiles.length - 1;
-			else if ( arrow === ky.d )
+			else if ( arrow === ky.d || arrow === ky.D )
 				return this.cursor.y < this.tiles[0].length - 1;
+		}
+
+		this.moved_coord = function( dir, coor, isX )
+		{
+			if ( isX )
+			{
+				if ( dir === ky.l || dir === ky.L)
+					return coor - 1;
+				else if ( dir === ky.r || dir === ky.R )
+					return coor + 1;
+				else
+					return coor;
+			}
+			else
+			{
+				if ( dir === ky.u || dir === ky.U )
+					return coor - 1;
+				else if ( dir === ky.d || dir === ky.D )
+					return coor + 1;
+				else
+					return coor;
+			}
 		}
 
 		this.apply_cursor_move = function( arrow )
 		{
-			if ( arrow === ky.l )
+			if ( arrow === ky.l || arrow === ky.L )
 				this.cursor.x -= 1;
-			else if ( arrow === ky.u )
+			else if ( arrow === ky.u || arrow === ky.U )
 				this.cursor.y -= 1;
-			else if ( arrow === ky.r )
+			else if ( arrow === ky.r || arrow === ky.R )
 				this.cursor.x += 1;
-			else if ( arrow === ky.d )
+			else if ( arrow === ky.d || arrow === ky.D )
 				this.cursor.y += 1;
 		}
-		
+
+		this.swap_block = function( thX, thY, dir )
+		{
+			var yesX = true;
+			var nxX = this.moved_coord( dir, thX, yesX );
+			var nxY = this.moved_coord( dir, thY, !yesX );
+			var tempType = this.tiles[thX][thY];
+			this.tiles[thX][thY] = this.tiles[nxX][nxY];
+			this.tiles[nxX][nxY] = tempType;
+		}
+
 		this.render_change = function( justCursor, oldX, oldY )
 		{
 			if ( justCursor )
@@ -258,15 +418,15 @@ function klotski()
 				var cY = topCorner( which, cY, !isX );
 				which = s_type( which );
 				var small = true;
-				bound.only_top_corner( which, cX, cY );
+				bound.top_corner_dr( which, cX, cY );
 			}
 			function redraw_goal_blocks()
 			{
 				// unrolled loop
-				bound.only_top_corner( bound.tiles[1][3], 1, 3 ); // we've left Board-space
-				bound.only_top_corner( bound.tiles[2][3], 2, 3 );
-				bound.only_top_corner( bound.tiles[1][4], 1, 4 );
-				bound.only_top_corner( bound.tiles[2][4], 2, 4 );
+				bound.top_corner_dr( bound.tiles[1][3], 1, 3 ); // we've left Board-space
+				bound.top_corner_dr( bound.tiles[2][3], 2, 3 );
+				bound.top_corner_dr( bound.tiles[1][4], 1, 4 );
+				bound.top_corner_dr( bound.tiles[2][4], 2, 4 );
 			}
 			//
 			// redraw_affected() BEGINS
@@ -342,7 +502,16 @@ function klotski()
 			canv.strokeStyle="grey";
 			canv.stroke();
 		}
-		
+
+		this.blank_board = function()
+		{
+			canv.beginPath();
+			canv.rect( 25, 25, this.w, this.h );
+			//canv.lineWidth = "3";
+			canv.fillStyle ="#0A0A29";// background-color
+			canv.fill();
+		}
+
 		this.dr_goal_area = function()
 		{
 			function dr_gline( sX_, sY_, eX_, eY_ )
