@@ -42,6 +42,7 @@ function klotski()
 {
 	var dom_canvas = document.getElementById( "canvas_here" );
 	var canv = dom_canvas.getContext( "2d" );
+	var isX = true;
 	var bound = new Board( 4, 5 );
 	var pix = new Screen( 218, 270 );
 	var ky = new KeyValues();
@@ -49,14 +50,6 @@ function klotski()
 	bound.render();//redraw();
 	window.addEventListener( "keydown", arrow_pressed, true );
 	window.addEventListener( "keypress", wasd_pressed, true );
-
-	function KeyValues()
-	{
-		this.l = 37; this.u = 38;
-		this.r = 39; this.d = 40;
-		this.L = 0; this.U = 1;
-		this.R = 2; this.D = 3;
-	}
 
 	function arrow_pressed( ev )
 	{
@@ -84,7 +77,6 @@ function klotski()
 	function wasd_pressed( ev )
 	{
 		var keyPressed = String.fromCharCode( ev.keyCode );
-		//termin.log("key=" + keyPressed);
 		if ( keyPressed === 'a' )
 			bound.try_block( ky.L );
 		else if ( keyPressed === 'w' )
@@ -94,7 +86,27 @@ function klotski()
 		else if ( keyPressed === 's' )
 			bound.try_block( ky.D );
 		else
-			termin.log("another pressed");
+			return; // irrelevant key
+	}
+
+	function KeyValues()
+	{
+		this.l = 37; this.u = 38;
+		this.r = 39; this.d = 40;
+		this.L = 0; this.U = 1;
+		this.R = 2; this.D = 3;
+
+		this.reverse = function( dir )
+		{
+			if ( dir === this.l || dir === this.L)
+				return this.r;
+			else if ( dir === this.r || dir === this.R )
+				return this.l;
+			else if ( dir === this.u || dir === this.U )
+				return this.d;
+			else if ( dir === this.d || dir === this.D )
+				return this.u;
+		}
 	}
 
 	function Cflag()
@@ -104,6 +116,7 @@ function klotski()
 		this.tt = 12; this.tb = 13;
 		this.wl = 24; this.wr = 25;
 		this.nw = 36; this.ne = 37; this.sw = 38; this.se = 39;
+		
 		this.str = function( some )
 		{
 			switch( some )
@@ -203,13 +216,11 @@ function klotski()
 
 		this.try_cursor = function( arrow )
 		{
-			if ( this.move_valid( arrow ) )
+			if ( this.within_bounds( arrow ) )
 			{
-				var justCursor = true, isX = true;
+				var justCursor = true;
 				var oldX = this.cursor.x, oldY = this.cursor.y;
-				this.cursor.x = this.moved_coord( arrow, this.cursor.x, isX );
-				this.cursor.y = this.moved_coord( arrow, this.cursor.y, !isX );
-				//this.apply_cursor_move( arrow );
+				this.apply_cursor_move( arrow );
 				this.render_change( justCursor, oldX, oldY );
 			}
 			//else
@@ -237,24 +248,84 @@ function klotski()
 			}
 			function second_unblocked( dir, type )
 			{
-				return false; // FIX from stub
+				var _x = bound.cursor.x;
+				var _y = bound.cursor.y;
+				switch( type )
+				{
+				case cornr.tt:		// one dimension covered
+					_y++;
+					break;
+				case cornr.tb:
+					_y--;
+					break;
+				case cornr.wl:
+					_x++;
+					break;
+				case cornr.wr:
+					_x--;
+					break;
+				case this.nw: // FIX still assuming leading edge
+					( dir === ky.U ) ? _x++ : _y++;
+					break;
+				case this.ne:
+					( dir === ky.U ) ? _x-- : _y++;
+					break;
+				case this.sw:
+					( dir === ky.D ) ? _x++ : _y--;
+					break;
+				case this.se:
+					( dir === ky.D ) ? _x-- : _y--;
+					break;
+				}
+				_x = bound.next_coord(dir, _x, isX);
+				_y = bound.next_coord(dir, _y, !isX);
+				return ( bound.tiles[ _x ][ _y ] === cornr.o_ );
 			}
 			function unblocked( dir )
 			{
 				// sq ta wi s o
-				var xxx = true;
-				var anX = bound.moved_coord(dir, bound.cursor.x, xxx);
-				var anY = bound.moved_coord(dir, bound.cursor.y, !xxx);
+				var anX = bound.next_coord(dir, bound.cursor.x, isX);
+				var anY = bound.next_coord(dir, bound.cursor.y, !isX);
 				var startType = bound.tiles[ bound.cursor.x ][ bound.cursor.y ];
 				var endType = bound.tiles[ anX ][ anY ];
-				termin.log( cornr.str(endType) );
-				if ( endType == cornr.o_ )
+				if ( endType === cornr.o_ )
 					if ( one_block_wide_in( dir, startType ) )
 						return true;
 					else
 						return second_unblocked( dir, startType );
 				else
 					return false;
+			}
+			function swap_square( dir, prevType ) // fix to dry
+			{
+				// just need to do the other three besides the cursor
+				var _x = bound.cursor.x;
+				var _y = bound.cursor.y;
+				switch( prevType )
+				{
+				case cornr.nw: // FIX still assuming leading edge
+					bound.swap_block( _x+1, _y, dir );
+					bound.swap_block( _x, _y+1, dir );
+					bound.swap_block( _x+1, _y+1, dir );
+					break;
+				case cornr.ne:
+					bound.swap_block( _x-1, _y, dir );
+					bound.swap_block( _x, _y+1, dir );
+					bound.swap_block( _x-1, _y+1, dir );
+					break;
+				case cornr.sw:
+					bound.swap_block( _x+1, _y, dir );
+					bound.swap_block( _x, _y-1, dir );
+					bound.swap_block( _x+1, _y-1, dir );
+					break;
+				case cornr.se:
+					bound.swap_block( _x-1, _y, dir );
+					bound.swap_block( _x, _y-1, dir );
+					bound.swap_block( _x-1, _y-1, dir );
+					break;
+				default:
+					return;//termin.log("wtf?");
+				}
 			}
 			function swap_rest_of_shape( dir, crsType )
 			{
@@ -275,17 +346,16 @@ function klotski()
 					_x--;
 					break;
 				default:
-					return swap_square( dir ); // early exit :B
+					swap_square( dir, crsType );
+					return;
 				}
 				bound.swap_block( _x, _y, dir );
 			}
-			// BEGINS
-			//termin.log("trying block");
-			if ( !this.move_valid( dir ) ){termin.log("invalid cursor");
-				return;}termin.log("valid cursor");
+			// try_block() BEGINS
+			if ( !this.within_bounds( dir ) )
+				return;
 			if ( unblocked( dir ) )
 			{
-			termin.log("unblocked");
 				var crsType = this.tiles[ this.cursor.x ][ this.cursor.y ];
 				this.swap_block( this.cursor.x, this.cursor.y, dir );
 				if ( crsType != cornr.s_ )
@@ -295,10 +365,10 @@ function klotski()
 			}
 		}
 
-		this.move_valid = function( arrow )
+		this.within_bounds = function( arrow )
 		{
-			if ( arrow === ky.l || arrow === ky.L ){termin.log("curs > 0 :: " + (this.cursor.x > 0));
-				return this.cursor.x > 0;}
+			if ( arrow === ky.l || arrow === ky.L )
+				return this.cursor.x > 0;
 			else if ( arrow === ky.u || arrow === ky.U )
 				return this.cursor.y > 0;
 			else if ( arrow === ky.r || arrow === ky.R )
@@ -307,7 +377,41 @@ function klotski()
 				return this.cursor.y < this.tiles[0].length - 1;
 		}
 
-		this.moved_coord = function( dir, coor, isX )
+		this.next_shape_block = function( type ) // fix & refactor to using this
+		{
+			var _x = bound.cursor.x;
+			var _y = bound.cursor.y;
+			switch( type )
+			{
+			case cornr.tt:		// one dimension covered
+				_y++;
+				break;
+			case cornr.tb:
+				_y--;
+				break;
+			case cornr.wl:
+				_x++;
+				break;
+			case cornr.wr:
+				_x--;
+				break;
+			case this.nw: // FIX still assuming leading edge
+				( dir === ky.U ) ? _x++ : _y++;
+				break;
+			case this.ne:
+				( dir === ky.U ) ? _x-- : _y++;
+				break;
+			case this.sw:
+				( dir === ky.D ) ? _x++ : _y--;
+				break;
+			case this.se:
+				( dir === ky.D ) ? _x-- : _y--;
+				break;
+			}
+			return { x:_x, y:_y };
+		}
+
+		this.next_coord = function( dir, coor, isX )
 		{
 			if ( isX )
 			{
@@ -343,9 +447,8 @@ function klotski()
 
 		this.swap_block = function( thX, thY, dir )
 		{
-			var yesX = true;
-			var nxX = this.moved_coord( dir, thX, yesX );
-			var nxY = this.moved_coord( dir, thY, !yesX );
+			var nxX = this.next_coord( dir, thX, isX );
+			var nxY = this.next_coord( dir, thY, !isX );
 			var tempType = this.tiles[thX][thY];
 			this.tiles[thX][thY] = this.tiles[nxX][nxY];
 			this.tiles[nxX][nxY] = tempType;
@@ -368,7 +471,7 @@ function klotski()
 		this.redraw_affected = function( coorX, coorY )
 		{
 			function same_shape( a, b ) // later optimization
-			{	return a === b; }
+			{	return a === b; } // also, no that's not right.
 			function s_type( part )
 			{
 				switch( part )
@@ -413,7 +516,6 @@ function klotski()
 			}
 			function redraw( which, cX, cY )
 			{
-				var isX = true;
 				var cX = topCorner( which, cX, isX );
 				var cY = topCorner( which, cY, !isX );
 				which = s_type( which );
@@ -440,7 +542,7 @@ function klotski()
 				redraw_goal_blocks();
 				if ( !bound.in_goal_area( coorX, coorY ) ) // sigh
 					redraw( prevShape, coorX, coorY );
-				else if ( !bound.in_goal_area( coorX, coorY ) )
+				else if ( !bound.in_goal_area( this.cursor.x, this.cursor.y ) )
 					redraw( currShape, this.cursor.x, this.cursor.y );
 			}
 			else

@@ -10,7 +10,7 @@ Currently: Move a cursor around a klotski board. Eventually you can play the gam
 * ~~draw board & pieces~~
 * ~~draw cursor~~
 * ~~move cursor with arrow keys~~
-* move piece with wasd, by rules
+* move piece ~~with wasd~~, by rules
 * check win condition
 * move count? smarter move count?
 * solver for hints?
