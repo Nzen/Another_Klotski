@@ -4,10 +4,10 @@
 // MIT license as described at http://choosealicense.com/licenses/mit/
 
 /* intended evolution
-draw board & pieces
-draw cursor
-move cursor with keys
-move piece according to rules
+~~draw board & pieces~~
+~~draw cursor~~
+~~move cursor with keys~~
+move piece according to rules~~
 check win condition
 move count? smarter move count?
 solver for hints?
@@ -153,8 +153,8 @@ function klotski()
 			var p = new Cflag();
 			var grid = new Array( 	// transpose permits tiles[x][y]
 				[p.tt, p.tb, p.tt, p.tb, p.s_],
-				[p.nw, p.sw, p.wl, p.s_, p.o_],
-				[p.ne, p.se, p.wr, p.s_, p.o_],
+				[p.nw, p.sw, p.o_, p.o_, p.o_],
+				[p.ne, p.se, p.o_, p.o_, p.o_],
 				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);
 			return grid;
@@ -362,6 +362,7 @@ function klotski()
 					swap_rest_of_shape( dir, crsType );
 				this.apply_cursor_move( dir );
 				this.render(); //_change();
+				this.check_if_won();
 			}
 		}
 
@@ -551,6 +552,12 @@ function klotski()
 				redraw( currShape, this.cursor.x, this.cursor.y );
 			}
 		}
+
+		this.check_if_won = function()
+		{
+			if ( this.tiles[1][3] === cornr.nw ) // assuming no bugs :p
+				pix.winner_banner();
+		}
 	}
 
 	function Screen( width, height)
@@ -644,6 +651,14 @@ function klotski()
 				dr_gline( sX, sY, eX, eY );
 				sY -= 10;
 			}
+		}
+
+		this.winner_banner = function()
+		{
+			canv.beginPath();
+			canv.fillStyle = "#3f1071";
+			canv.font = "bold 18px monospace";
+			canv.fillText( "winner \"\nchicken dinner", 1, 200 );
 		}
 
 		this.c2p = function( coord )
