@@ -141,11 +141,13 @@ function klotski()
 				return "sw";
 			case this.se:
 				return "se";
+			default:
+				return "???";
 			}
 		}
 	}
 
-	function Board( width, depth ) // hm doesn't use wid;depth
+	function Board( width, depth )
 	{
 		// interpretation order demands this be first :\
 		this.fill_board = function()
@@ -153,8 +155,8 @@ function klotski()
 			var p = new Cflag();
 			var grid = new Array( 	// transpose permits tiles[x][y]
 				[p.tt, p.tb, p.tt, p.tb, p.s_],
-				[p.nw, p.sw, p.o_, p.o_, p.o_],
-				[p.ne, p.se, p.o_, p.o_, p.o_],
+				[p.nw, p.sw, p.o_, p.wl, p.o_],
+				[p.ne, p.se, p.o_, p.wr, p.o_],
 				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);
 			return grid;
@@ -181,35 +183,65 @@ function klotski()
 				for ( var yy = 0; yy < this.tiles[xx].length; yy++ )
 				{
 					currT = this.tiles[xx][yy];
-					this.top_corner_dr( currT, xx, yy );
+					//this.top_corner_dr( currT, xx, yy );
+					this.blockwise_dr( currT, xx, yy );
 				}
+			}
+		}
+
+		this.blockwise_dr = function( type, xx, yy ) // for testing
+		{
+			switch( type )
+			{
+			default:
+			case cornr.o_:
+				if ( this.in_goal_area( xx, yy ) )
+					return;
+				else
+					pix.dr_bk_txt( xx, yy, "#0A0A29", cornr.str(type) );// background-color
+				break;
+			case cornr.s_:
+				pix.dr_bk_txt( xx, yy, "purple", cornr.str(type) );
+				break;
+			case cornr.tt:
+			case cornr.tb:
+				pix.dr_bk_txt( xx, yy, "green", cornr.str(type) ); // fix to bk_txt()
+				break;
+			case cornr.wl:
+			case cornr.wr:
+				pix.dr_bk_txt( xx, yy, "blue", cornr.str(type) );
+				break;
+			case cornr.nw:
+			case cornr.ne:
+			case cornr.sw:
+			case cornr.se:
+				pix.dr_bk_txt( xx, yy, "red", cornr.str(type) );
 			}
 		}
 
 		this.top_corner_dr = function( type, xx, yy )
 		{
 			var small = true;
-			var p = new Cflag();
 			switch( type )
 			{
 			default:
 				return;
-			case p.o_:
+			case cornr.o_:
 				if ( this.in_goal_area( xx, yy ) )
 					return;
 				else
 					pix.dr_block( xx, yy, small, small, "#0A0A29" );// background-color
 				break;
-			case p.s_:
+			case cornr.s_:
 				pix.dr_block( xx, yy, small, small, "purple" );
 				break;
-			case p.tt:
+			case cornr.tt:
 				pix.dr_block( xx, yy, small, !small, "green" );
 				break;
-			case p.wl:
+			case cornr.wl:
 				pix.dr_block( xx, yy, !small, small, "blue" );
 				break;
-			case p.nw:
+			case cornr.nw:
 				pix.dr_block( xx, yy, !small, !small, "red" );
 			}
 		}
@@ -221,7 +253,7 @@ function klotski()
 				var justCursor = true;
 				var oldX = this.cursor.x, oldY = this.cursor.y;
 				this.apply_cursor_move( arrow );
-				this.render_change( justCursor, oldX, oldY );
+				this.render();//_change( justCursor, oldX, oldY );
 			}
 			//else
 				//termin.log( " cursor hit edge" ); // or fading red line?
@@ -289,10 +321,16 @@ function klotski()
 				var startType = bound.tiles[ bound.cursor.x ][ bound.cursor.y ];
 				var endType = bound.tiles[ anX ][ anY ];
 				if ( endType === cornr.o_ )
-					if ( one_block_wide_in( dir, startType ) )
-						return true;
-					else
-						return second_unblocked( dir, startType );
+				{
+					return one_block_wide_in( dir, startType ) || second_unblocked( dir, startType );
+				}
+				else if ( bound.same_shape( startType, endType ) )
+				{
+					anX = bound.next_coord(dir, anX, isX);
+					anY = bound.next_coord(dir, anY, !isX);
+					endType = bound.tiles[ anX ][ anY ];
+					return ( endType === cornr.o_ );
+				}
 				else
 					return false;
 			}
@@ -357,10 +395,23 @@ function klotski()
 			if ( unblocked( dir ) )
 			{
 				var crsType = this.tiles[ this.cursor.x ][ this.cursor.y ];
-				this.swap_block( this.cursor.x, this.cursor.y, dir );
-				if ( crsType != cornr.s_ )
-					swap_rest_of_shape( dir, crsType );
-				this.apply_cursor_move( dir );
+				var nextType = this.tiles[bound.next_coord(dir, bound.cursor.x, isX)][bound.next_coord(dir, bound.cursor.y, !isX)];
+				if ( bound.same_shape( crsType, nextType ) )
+				{
+					this.apply_cursor_move( dir );
+					crsType = nextType;
+					this.swap_block( this.cursor.x, this.cursor.y, dir );
+					if ( crsType != cornr.s_ )
+						swap_rest_of_shape( dir, crsType );
+					//this.apply_cursor_move( ky.reverse(dir) );
+				}
+				else
+				{
+					this.swap_block( this.cursor.x, this.cursor.y, dir );
+					if ( crsType != cornr.s_ )
+						swap_rest_of_shape( dir, crsType );
+					this.apply_cursor_move( dir );
+				}
 				this.render(); //_change();
 				this.check_if_won();
 			}
@@ -434,6 +485,29 @@ function klotski()
 			}
 		}
 
+		this.same_shape = function( typeA, typeZ )
+		{
+			//termin.log(typeA + "t::t" + typeZ);
+			switch( typeA )
+			{
+			case cornr.tt:
+				return ( typeZ === cornr.tb );
+			case cornr.tb:
+				return ( typeZ === cornr.tt );
+			case cornr.wl:
+			case cornr.wr:
+				return ( typeZ === cornr.wl || typeZ === cornr.wr );
+			case cornr.nw:
+			case cornr.ne:
+			case cornr.sw:
+			case cornr.se:
+				return ( typeZ === cornr.nw || typeZ === cornr.ne || typeZ === cornr.sw || typeZ === cornr.se );
+			case cornr.s_:
+			default:
+				return false;
+			}
+		}
+
 		this.apply_cursor_move = function( arrow )
 		{
 			if ( arrow === ky.l || arrow === ky.L )
@@ -471,8 +545,6 @@ function klotski()
 
 		this.redraw_affected = function( coorX, coorY )
 		{
-			function same_shape( a, b ) // later optimization
-			{	return a === b; } // also, no that's not right.
 			function s_type( part )
 			{
 				switch( part )
@@ -579,6 +651,23 @@ function klotski()
 			canv.fill();
 		}
 
+		this.dr_bk_txt = function( xC, yC, color, txt )
+		{
+			var xP = this.c2p( xC );
+			var yP = this.c2p( yC );
+			var xL = 40, yL = xL;
+			canv.beginPath();
+			canv.rect( xP, yP, xL, yL ); // x y
+			canv.lineWidth = "3";
+			canv.strokeStyle = color;
+			canv.stroke();
+			//
+			canv.beginPath();
+			canv.fillStyle = "gray";
+			canv.font = "bold 13px monospace";
+			canv.fillText( txt, xP + 15, yP + 15 );
+		}
+
 		this.dr_cursor = function( xC, yC )
 		{
 			var xP = this.cur2p( xC );
@@ -655,7 +744,7 @@ function klotski()
 
 		this.winner_banner = function()
 		{
-			canv.beginPath();
+			//canv.beginPath();
 			canv.fillStyle = "#3f1071";
 			canv.font = "bold 18px monospace";
 			canv.fillText( "winner \"\nchicken dinner", 1, 200 );
