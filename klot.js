@@ -7,8 +7,8 @@
 ~~draw board & pieces~~
 ~~draw cursor~~
 ~~move cursor with keys~~
-move piece according to rules~~
-check win condition
+~~move piece according to rules~~
+~~check win condition~~
 move count? smarter move count?
 solver for hints?
 win sound?
@@ -46,8 +46,8 @@ function klotski()
 	var bound = new Board( 4, 5 );
 	var pix = new Screen( 218, 270 );
 	var ky = new KeyValues();
-	var cornr = new Cflag(); // determining shape
-	bound.render();//redraw();
+	var corner = new Cflag(); // determining shape
+	bound.render();
 	window.addEventListener( "keydown", arrow_pressed, true );
 	window.addEventListener( "keypress", wasd_pressed, true );
 
@@ -107,6 +107,24 @@ function klotski()
 			else if ( dir === this.d || dir === this.D )
 				return this.u;
 		}
+		this.str = function( some )
+		{
+			switch( some )
+			{
+			case this.l:
+			case this.L:
+				return "lL";
+			case this.u:
+			case this.U:
+				return "uU";
+			case this.r:
+			case this.R:
+				return "rR";
+			case this.d:
+			case this.D:
+				return "dD";
+			}
+		}
 	}
 
 	function Cflag()
@@ -155,8 +173,8 @@ function klotski()
 			var p = new Cflag();
 			var grid = new Array( 	// transpose permits tiles[x][y]
 				[p.tt, p.tb, p.tt, p.tb, p.s_],
-				[p.nw, p.sw, p.o_, p.wl, p.o_],
-				[p.ne, p.se, p.o_, p.wr, p.o_],
+				[p.nw, p.sw, p.wl, p.s_, p.o_],
+				[p.ne, p.se, p.wr, p.s_, p.o_],
 				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);
 			return grid;
@@ -173,6 +191,7 @@ function klotski()
 			pix.dr_goal_area();
 			pix.dr_cursor( this.cursor.x, this.cursor.y );
 			this.all_blocks_dr();
+			this.check_if_won();
 		}
 
 		this.all_blocks_dr = function()
@@ -183,39 +202,39 @@ function klotski()
 				for ( var yy = 0; yy < this.tiles[xx].length; yy++ )
 				{
 					currT = this.tiles[xx][yy];
-					//this.top_corner_dr( currT, xx, yy );
-					this.blockwise_dr( currT, xx, yy );
+					this.top_corner_dr( currT, xx, yy ); // for clients
+					//this.blockwise_dr( currT, xx, yy ); // for testing
 				}
 			}
 		}
 
-		this.blockwise_dr = function( type, xx, yy ) // for testing
+		this.blockwise_dr = function( type, xx, yy ) // outlines
 		{
 			switch( type )
 			{
 			default:
-			case cornr.o_:
+			case corner.o_:
 				if ( this.in_goal_area( xx, yy ) )
 					return;
 				else
-					pix.dr_bk_txt( xx, yy, "#0A0A29", cornr.str(type) );// background-color
+					pix.dr_bk_txt( xx, yy, "#0A0A29", corner.str(type) );// background-color
 				break;
-			case cornr.s_:
-				pix.dr_bk_txt( xx, yy, "purple", cornr.str(type) );
+			case corner.s_:
+				pix.dr_bk_txt( xx, yy, "purple", corner.str(type) );
 				break;
-			case cornr.tt:
-			case cornr.tb:
-				pix.dr_bk_txt( xx, yy, "green", cornr.str(type) ); // fix to bk_txt()
+			case corner.tt:
+			case corner.tb:
+				pix.dr_bk_txt( xx, yy, "green", corner.str(type) );
 				break;
-			case cornr.wl:
-			case cornr.wr:
-				pix.dr_bk_txt( xx, yy, "blue", cornr.str(type) );
+			case corner.wl:
+			case corner.wr:
+				pix.dr_bk_txt( xx, yy, "blue", corner.str(type) );
 				break;
-			case cornr.nw:
-			case cornr.ne:
-			case cornr.sw:
-			case cornr.se:
-				pix.dr_bk_txt( xx, yy, "red", cornr.str(type) );
+			case corner.nw:
+			case corner.ne:
+			case corner.sw:
+			case corner.se:
+				pix.dr_bk_txt( xx, yy, "red", corner.str(type) );
 			}
 		}
 
@@ -226,22 +245,22 @@ function klotski()
 			{
 			default:
 				return;
-			case cornr.o_:
+			case corner.o_:
 				if ( this.in_goal_area( xx, yy ) )
 					return;
 				else
 					pix.dr_block( xx, yy, small, small, "#0A0A29" );// background-color
 				break;
-			case cornr.s_:
+			case corner.s_:
 				pix.dr_block( xx, yy, small, small, "purple" );
 				break;
-			case cornr.tt:
+			case corner.tt:
 				pix.dr_block( xx, yy, small, !small, "green" );
 				break;
-			case cornr.wl:
+			case corner.wl:
 				pix.dr_block( xx, yy, !small, small, "blue" );
 				break;
-			case cornr.nw:
+			case corner.nw:
 				pix.dr_block( xx, yy, !small, !small, "red" );
 			}
 		}
@@ -261,57 +280,57 @@ function klotski()
 
 		this.try_block = function( dir )
 		{
-				// FIX, assumes that cursor is on the leading edge of the shape
 			function one_block_wide_in( dir, type )
 			{
 				switch( type )
 				{
-				case cornr.s_:
+				case corner.s_:
 					return true;
-				case cornr.tt:
-				case cornr.tb:
+				case corner.tt:
+				case corner.tb:
 					return ( dir === ky.U || dir === ky.D );
-				case cornr.wl:
-				case cornr.wr:
+				case corner.wl:
+				case corner.wr:
 					return ( dir === ky.L || dir === ky.R );
 				default: // ie square
 					return false;
 				}
 			}
-			function second_unblocked( dir, type )
+			function second_unblocked( dir, startType, _x, _y )
 			{
-				var _x = bound.cursor.x;
-				var _y = bound.cursor.y;
-				switch( type )
+				switch( startType )
 				{
-				case cornr.tt:		// one dimension covered
-					_y++;
+				case corner.tt:
+					dir = ky.D; // direction to check for shape
 					break;
-				case cornr.tb:
-					_y--;
+				case corner.tb:
+					dir = ky.U;
 					break;
-				case cornr.wl:
-					_x++;
+				case corner.wl:
+					dir = ky.R;
 					break;
-				case cornr.wr:
-					_x--;
+				case corner.wr:
+					dir = ky.L;
 					break;
-				case this.nw: // FIX still assuming leading edge
-					( dir === ky.U ) ? _x++ : _y++;
+				case corner.nw:
+					dir = (( dir === ky.U ) ? ky.R : ky.D);
 					break;
-				case this.ne:
-					( dir === ky.U ) ? _x-- : _y++;
+				case corner.ne:
+					dir = (( dir === ky.U ) ? ky.L : ky.D);
 					break;
-				case this.sw:
-					( dir === ky.D ) ? _x++ : _y--;
+				case corner.sw:
+					dir = (( dir === ky.D ) ? ky.R : ky.U);
 					break;
-				case this.se:
-					( dir === ky.D ) ? _x-- : _y--;
-					break;
+				case corner.se:
+					dir = (( dir === ky.D ) ? ky.L : ky.U);
 				}
 				_x = bound.next_coord(dir, _x, isX);
 				_y = bound.next_coord(dir, _y, !isX);
-				return ( bound.tiles[ _x ][ _y ] === cornr.o_ );
+				return ( bound.tiles[ _x ][ _y ] === corner.o_ );
+			}
+			function check_unblocked( dir, startType, anX, anY )
+			{
+				return one_block_wide_in( dir, startType ) || second_unblocked( dir, startType, anX, anY );
 			}
 			function unblocked( dir )
 			{
@@ -320,43 +339,43 @@ function klotski()
 				var anY = bound.next_coord(dir, bound.cursor.y, !isX);
 				var startType = bound.tiles[ bound.cursor.x ][ bound.cursor.y ];
 				var endType = bound.tiles[ anX ][ anY ];
-				if ( endType === cornr.o_ )
+				if ( endType === corner.o_ )
 				{
-					return one_block_wide_in( dir, startType ) || second_unblocked( dir, startType );
+					return check_unblocked( dir, startType, anX, anY );
 				}
 				else if ( bound.same_shape( startType, endType ) )
 				{
 					anX = bound.next_coord(dir, anX, isX);
 					anY = bound.next_coord(dir, anY, !isX);
+					startType = endType;
 					endType = bound.tiles[ anX ][ anY ];
-					return ( endType === cornr.o_ );
+					return ( endType === corner.o_ && check_unblocked(dir, startType, anX, anY) );
 				}
 				else
 					return false;
 			}
 			function swap_square( dir, prevType ) // fix to dry
 			{
-				// just need to do the other three besides the cursor
 				var _x = bound.cursor.x;
 				var _y = bound.cursor.y;
 				switch( prevType )
 				{
-				case cornr.nw: // FIX still assuming leading edge
+				case corner.nw:
 					bound.swap_block( _x+1, _y, dir );
 					bound.swap_block( _x, _y+1, dir );
 					bound.swap_block( _x+1, _y+1, dir );
 					break;
-				case cornr.ne:
+				case corner.ne:
 					bound.swap_block( _x-1, _y, dir );
 					bound.swap_block( _x, _y+1, dir );
 					bound.swap_block( _x-1, _y+1, dir );
 					break;
-				case cornr.sw:
+				case corner.sw:
 					bound.swap_block( _x+1, _y, dir );
 					bound.swap_block( _x, _y-1, dir );
 					bound.swap_block( _x+1, _y-1, dir );
 					break;
-				case cornr.se:
+				case corner.se:
 					bound.swap_block( _x-1, _y, dir );
 					bound.swap_block( _x, _y-1, dir );
 					bound.swap_block( _x-1, _y-1, dir );
@@ -371,16 +390,16 @@ function klotski()
 				var _y = bound.cursor.y;
 				switch( crsType )
 				{
-				case cornr.tt:
+				case corner.tt:
 					_y++;
 					break;
-				case cornr.tb:
+				case corner.tb:
 					_y--;
 					break;
-				case cornr.wl:
+				case corner.wl:
 					_x++;
 					break;
-				case cornr.wr:
+				case corner.wr:
 					_x--;
 					break;
 				default:
@@ -401,19 +420,18 @@ function klotski()
 					this.apply_cursor_move( dir );
 					crsType = nextType;
 					this.swap_block( this.cursor.x, this.cursor.y, dir );
-					if ( crsType != cornr.s_ )
+					if ( crsType != corner.s_ )
 						swap_rest_of_shape( dir, crsType );
 					//this.apply_cursor_move( ky.reverse(dir) );
 				}
 				else
 				{
 					this.swap_block( this.cursor.x, this.cursor.y, dir );
-					if ( crsType != cornr.s_ )
+					if ( crsType != corner.s_ )
 						swap_rest_of_shape( dir, crsType );
 					this.apply_cursor_move( dir );
 				}
 				this.render(); //_change();
-				this.check_if_won();
 			}
 		}
 
@@ -427,40 +445,6 @@ function klotski()
 				return this.cursor.x < this.tiles.length - 1;
 			else if ( arrow === ky.d || arrow === ky.D )
 				return this.cursor.y < this.tiles[0].length - 1;
-		}
-
-		this.next_shape_block = function( type ) // fix & refactor to using this
-		{
-			var _x = bound.cursor.x;
-			var _y = bound.cursor.y;
-			switch( type )
-			{
-			case cornr.tt:		// one dimension covered
-				_y++;
-				break;
-			case cornr.tb:
-				_y--;
-				break;
-			case cornr.wl:
-				_x++;
-				break;
-			case cornr.wr:
-				_x--;
-				break;
-			case this.nw: // FIX still assuming leading edge
-				( dir === ky.U ) ? _x++ : _y++;
-				break;
-			case this.ne:
-				( dir === ky.U ) ? _x-- : _y++;
-				break;
-			case this.sw:
-				( dir === ky.D ) ? _x++ : _y--;
-				break;
-			case this.se:
-				( dir === ky.D ) ? _x-- : _y--;
-				break;
-			}
-			return { x:_x, y:_y };
 		}
 
 		this.next_coord = function( dir, coor, isX )
@@ -487,22 +471,21 @@ function klotski()
 
 		this.same_shape = function( typeA, typeZ )
 		{
-			//termin.log(typeA + "t::t" + typeZ);
 			switch( typeA )
 			{
-			case cornr.tt:
-				return ( typeZ === cornr.tb );
-			case cornr.tb:
-				return ( typeZ === cornr.tt );
-			case cornr.wl:
-			case cornr.wr:
-				return ( typeZ === cornr.wl || typeZ === cornr.wr );
-			case cornr.nw:
-			case cornr.ne:
-			case cornr.sw:
-			case cornr.se:
-				return ( typeZ === cornr.nw || typeZ === cornr.ne || typeZ === cornr.sw || typeZ === cornr.se );
-			case cornr.s_:
+			case corner.tt:
+				return ( typeZ === corner.tb );
+			case corner.tb:
+				return ( typeZ === corner.tt );
+			case corner.wl:
+			case corner.wr:
+				return ( typeZ === corner.wl || typeZ === corner.wr );
+			case corner.nw:
+			case corner.ne:
+			case corner.sw:
+			case corner.se:
+				return ( typeZ === corner.nw || typeZ === corner.ne || typeZ === corner.sw || typeZ === corner.se );
+			case corner.s_:
 			default:
 				return false;
 			}
@@ -550,20 +533,20 @@ function klotski()
 				switch( part )
 				{
 				default:
-				case cornr.o_:
-				case cornr.s_:
-				case cornr.tt:
-				case cornr.wl:
-				case cornr.nw:
+				case corner.o_:
+				case corner.s_:
+				case corner.tt:
+				case corner.wl:
+				case corner.nw:
 					return part;
-				case cornr.tb:
-					return cornr.tt;
-				case cornr.wr:
-					return cornr.wl;
-				case cornr.ne:
-				case cornr.sw:
-				case cornr.se:
-					return cornr.nw;
+				case corner.tb:
+					return corner.tt;
+				case corner.wr:
+					return corner.wl;
+				case corner.ne:
+				case corner.sw:
+				case corner.se:
+					return corner.nw;
 				}
 			}
 			function topCorner( type, sideCoor, isX )
@@ -571,19 +554,19 @@ function klotski()
 				switch( type )
 				{
 				default:
-				case cornr.o_:
-				case cornr.s_:
-				case cornr.tt:
-				case cornr.wl:
-				case cornr.nw:
+				case corner.o_:
+				case corner.s_:
+				case corner.tt:
+				case corner.wl:
+				case corner.nw:
 					return sideCoor;
-				case cornr.tb:
-				case cornr.sw:
+				case corner.tb:
+				case corner.sw:
 					return ( !isX ) ? sideCoor - 1 : sideCoor;
-				case cornr.wr:
-				case cornr.ne:
+				case corner.wr:
+				case corner.ne:
 					return ( isX ) ? sideCoor - 1 : sideCoor;
-				case cornr.se:
+				case corner.se:
 					return sideCoor - 1;
 				}
 			}
@@ -603,7 +586,6 @@ function klotski()
 				bound.top_corner_dr( bound.tiles[1][4], 1, 4 );
 				bound.top_corner_dr( bound.tiles[2][4], 2, 4 );
 			}
-			//
 			// redraw_affected() BEGINS
 			var prevShape = this.tiles[coorX][coorY];
 			var currShape = this.tiles[this.cursor.x][this.cursor.y];
@@ -627,7 +609,7 @@ function klotski()
 
 		this.check_if_won = function()
 		{
-			if ( this.tiles[1][3] === cornr.nw ) // assuming no bugs :p
+			if ( this.tiles[1][3] === corner.nw ) // assuming no bugs :p
 				pix.winner_banner();
 		}
 	}
@@ -651,6 +633,7 @@ function klotski()
 			canv.fill();
 		}
 
+		// debugging style output
 		this.dr_bk_txt = function( xC, yC, color, txt )
 		{
 			var xP = this.c2p( xC );
@@ -721,7 +704,6 @@ function klotski()
 				canv.lineTo(eX_, eY_);
 				canv.stroke();
 			}
-
 			// lower triangle
 			var eX = 179; // fix to c2p ratio?
 			var sY = 282;
@@ -744,10 +726,11 @@ function klotski()
 
 		this.winner_banner = function()
 		{
-			//canv.beginPath();
-			canv.fillStyle = "#3f1071";
-			canv.font = "bold 18px monospace";
-			canv.fillText( "winner \"\nchicken dinner", 1, 200 );
+			canv.fillStyle = "paleturquoise";
+			canv.font = "bold 20px monospace";
+			//canv.rotate( Math.PI * 1.5 );
+			canv.fillText( "winner winner", 10,210);//1, 210 );
+			canv.fillText( "chicken dinner", 75,240);//100, 240 );
 		}
 
 		this.c2p = function( coord )
@@ -781,5 +764,4 @@ function klotski()
 			return this.c2p( coord ) - 5;
 		}
 	}
-
 }

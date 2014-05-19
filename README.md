@@ -3,15 +3,16 @@
 ![what klotski looks like](https://farm6.staticflickr.com/5491/13933588087_01571368ea_m_d.jpg)
 (img [via flickr](https://www.flickr.com/photos/18099895@N06/13933588087))
 
-Currently: Move a cursor around a klotski board. Eventually you can play the game, but not yet.
+Currently: Solve a sliding block puzzle. _Arrow keys_ move the cursor. _Wasd_ drags the cursor & the shape beneath it, when the way is clear.
 
 ### intended evolution
 
 * ~~draw board & pieces~~
 * ~~draw cursor~~
 * ~~move cursor with arrow keys~~
-* move piece ~~with wasd~~, by rules
-* check win condition
+* ~~move piece with wasd~~
+* ~~check win condition~~
+* move cursor with ijkl instead
 * move count? smarter move count?
 * solver for hints?
 * win sound?
