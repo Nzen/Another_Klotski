@@ -9,7 +9,7 @@
 	~~move cursor with keys~~
 	~~move piece according to rules~~
 	~~check win condition~~
-	move cursor with not the arrowkeys
+	~~move cursor with ijkl~~
 	tests
 	move count? smarter move count?
 	solver for hints?
@@ -50,6 +50,8 @@ function klotski()
 	var pix = new Screen( 218, 270 );
 	var ky = new KeyValues();
 	var corner = new Cflag(); // determining shape
+	var moves = 0;
+	var background = "#0A0A29";
 	bound.test_all();
 	bound.render();
 	//window.addEventListener( "keydown", arrow_pressed, true );
@@ -206,6 +208,7 @@ function klotski()
 			pix.dr_cursor( this.cursor.x, this.cursor.y );
 			this.all_blocks_dr();
 			this.check_if_won();
+			pix.show_moves();
 		}
 
 		this.all_blocks_dr = function()
@@ -231,7 +234,7 @@ function klotski()
 				if ( this.in_goal_area( xx, yy ) )
 					return;
 				else
-					pix.dr_bk_txt( xx, yy, "#0A0A29", corner.str(type) );// background-color
+					pix.dr_bk_txt( xx, yy, background, corner.str(type) );
 				break;
 			case corner.s_:
 				pix.dr_bk_txt( xx, yy, "purple", corner.str(type) );
@@ -263,7 +266,7 @@ function klotski()
 				if ( this.in_goal_area( xx, yy ) )
 					return;
 				else
-					pix.dr_block( xx, yy, small, small, "#0A0A29" );// background-color
+					pix.dr_block( xx, yy, small, small, background );
 				break;
 			case corner.s_:
 				pix.dr_block( xx, yy, small, small, "purple" );
@@ -444,6 +447,7 @@ function klotski()
 						swap_rest_of_shape( dir, crsType );
 					this.apply_cursor_move( dir );
 				}
+				moves++;
 				this.render(); //_change();
 			}
 		}
@@ -731,7 +735,7 @@ function klotski()
 			canv.beginPath();
 			canv.rect( xP, yP, defaultSide, defaultSide ); // x y
 			canv.lineWidth = "3";
-			canv.strokeStyle = "#0A0A29"; // is background-color
+			canv.strokeStyle = background;
 			canv.stroke();
 		}
 
@@ -747,9 +751,9 @@ function klotski()
 		this.blank_board = function()
 		{
 			canv.beginPath();
-			canv.rect( 25, 25, this.w, this.h );
+			canv.rect( 25, 25, this.w+70, this.h+30 );
 			//canv.lineWidth = "3";
-			canv.fillStyle ="#0A0A29";// background-color
+			canv.fillStyle =background;
 			canv.fill();
 		}
 
@@ -791,6 +795,15 @@ function klotski()
 			//canv.rotate( Math.PI * 1.5 );
 			canv.fillText( "winner winner", 10,210);//1, 210 );
 			canv.fillText( "chicken dinner", 75,240);//100, 240 );
+		}
+
+		this.show_moves = function()
+		{
+			canv.fillStyle = "white";
+			canv.font = "bold 15px monospace";
+			//canv.rotate( Math.PI * 1.5 );
+			canv.fillText( "moves", 255, 260 );
+			canv.fillText( moves, 260, 280 );
 		}
 
 		this.c2p = function( coord )
