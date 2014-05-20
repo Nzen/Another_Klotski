@@ -12,7 +12,8 @@ Currently: Solve a sliding block puzzle. _Arrow keys_ move the cursor. _Wasd_ dr
 * ~~move cursor with arrow keys~~
 * ~~move piece with wasd~~
 * ~~check win condition~~
-* move cursor with ijkl instead
+* ~~move cursor with ijkl instead~~
+* tests for everything
 * move count? smarter move count?
 * solver for hints?
 * win sound?
