@@ -4,14 +4,17 @@
 // MIT license as described at http://choosealicense.com/licenses/mit/
 
 /* intended evolution
-~~draw board & pieces~~
-~~draw cursor~~
-~~move cursor with keys~~
-~~move piece according to rules~~
-~~check win condition~~
-move count? smarter move count?
-solver for hints?
-win sound?
+	~~draw board & pieces~~
+	~~draw cursor~~
+	~~move cursor with keys~~
+	~~move piece according to rules~~
+	~~check win condition~~
+	move cursor with not the arrowkeys
+	tests
+	move count? smarter move count?
+	solver for hints?
+	win sound? piece sounds :? // separate branch?
+	draw bounds / blocked detection bar
 */
 
 window.addEventListener( "load", pageReady, false );
@@ -47,11 +50,12 @@ function klotski()
 	var pix = new Screen( 218, 270 );
 	var ky = new KeyValues();
 	var corner = new Cflag(); // determining shape
+	bound.test_all();
 	bound.render();
-	window.addEventListener( "keydown", arrow_pressed, true );
-	window.addEventListener( "keypress", wasd_pressed, true );
+	//window.addEventListener( "keydown", arrow_pressed, true );
+	window.addEventListener( "keypress", letter_pressed, true );
 
-	function arrow_pressed( ev )
+	function arrow_pressed( ev ) // FIX refactor to using ijkl for cursor moves so it doesn't alter a tall/wide page
 	{
 		var press = ev || window.event;
 		var keyCode = press.keyCode;
@@ -74,9 +78,10 @@ function klotski()
 		}
 	}
 
-	function wasd_pressed( ev )
+	function letter_pressed( ev )
 	{
 		var keyPressed = String.fromCharCode( ev.keyCode );
+		// cursor & shape
 		if ( keyPressed === 'a' )
 			bound.try_block( ky.L );
 		else if ( keyPressed === 'w' )
@@ -85,6 +90,15 @@ function klotski()
 			bound.try_block( ky.R );
 		else if ( keyPressed === 's' )
 			bound.try_block( ky.D );
+		// cursor only
+		else if ( keyPressed === 'j' )
+			bound.try_cursor( ky.l );
+		else if ( keyPressed === 'i' )
+			bound.try_cursor( ky.u );
+		else if ( keyPressed === 'l' )
+			bound.try_cursor( ky.r );
+		else if ( keyPressed === 'k' )
+			bound.try_cursor( ky.d );
 		else
 			return; // irrelevant key
 	}
@@ -269,10 +283,9 @@ function klotski()
 		{
 			if ( this.within_bounds( arrow ) )
 			{
-				var justCursor = true;
 				var oldX = this.cursor.x, oldY = this.cursor.y;
 				this.apply_cursor_move( arrow );
-				this.render();//_change( justCursor, oldX, oldY );
+				this.render();
 			}
 			//else
 				//termin.log( " cursor hit edge" ); // or fading red line?
@@ -328,7 +341,7 @@ function klotski()
 				_y = bound.next_coord(dir, _y, !isX);
 				return ( bound.tiles[ _x ][ _y ] === corner.o_ );
 			}
-			function check_unblocked( dir, startType, anX, anY )
+			function rest_unblocked( dir, startType, anX, anY )
 			{
 				return one_block_wide_in( dir, startType ) || second_unblocked( dir, startType, anX, anY );
 			}
@@ -341,7 +354,7 @@ function klotski()
 				var endType = bound.tiles[ anX ][ anY ];
 				if ( endType === corner.o_ )
 				{
-					return check_unblocked( dir, startType, anX, anY );
+					return rest_unblocked( dir, startType, anX, anY );
 				}
 				else if ( bound.same_shape( startType, endType ) )
 				{
@@ -349,7 +362,7 @@ function klotski()
 					anY = bound.next_coord(dir, anY, !isX);
 					startType = endType;
 					endType = bound.tiles[ anX ][ anY ];
-					return ( endType === corner.o_ && check_unblocked(dir, startType, anX, anY) );
+					return ( endType === corner.o_ && rest_unblocked(dir, startType, anX, anY) );
 				}
 				else
 					return false;
@@ -611,6 +624,53 @@ function klotski()
 		{
 			if ( this.tiles[1][3] === corner.nw ) // assuming no bugs :p
 				pix.winner_banner();
+		}
+
+		this.test_all = function()
+		{
+			function test_apply_cursor_move()
+			{
+				function new_cursor_right( _x, _y )
+				{	return ( bound.cursor.x == _x && bound.cursor.y == _y )
+				}
+				var oldX = bound.cursor.x;
+				var oldY = bound.cursor.y;
+				bound.cursor.x = 2;
+				bound.cursor.y = 2;
+				bound.apply_cursor_move( ky.U );
+				if ( ! new_cursor_right( 2,1 ) )
+					termin.log( "tacm didn't move U" );
+				bound.apply_cursor_move( ky.u );
+				if ( ! new_cursor_right( 2,0 ) )
+					termin.log( "tacm didn't move u" );
+				bound.apply_cursor_move( ky.l );
+				if ( ! new_cursor_right( 1,0 ) )
+					termin.log( "tacm didn't move l" );
+				bound.apply_cursor_move( ky.L );
+				if ( ! new_cursor_right( 0,0 ) )
+					termin.log( "tacm didn't move L" );
+				bound.apply_cursor_move( ky.d );
+				if ( ! new_cursor_right( 0,1 ) )
+					termin.log( "tacm didn't move d" );
+				bound.apply_cursor_move( ky.D );
+				if ( ! new_cursor_right( 0,2 ) )
+					termin.log( "tacm didn't move D" );
+				bound.apply_cursor_move( ky.r );
+				if ( ! new_cursor_right( 1,2 ) )
+					termin.log( "tacm didn't move r" );
+				bound.apply_cursor_move( ky.R );
+				if ( ! new_cursor_right( 2,2 ) )
+					termin.log( "tacm didn't move R" );
+				bound.cursor.x = oldX;
+				bound.cursor.y = oldY;
+			}
+			/*grid = new Array(
+				[p.tt, p.tb, p.tt, p.tb, p.s_],
+				[p.nw, p.sw, p.wl, p.s_, p.o_],
+				[p.ne, p.se, p.wr, p.s_, p.o_],
+				[p.tt, p.tb, p.tt, p.tb, p.s_]
+			);*/
+			test_apply_cursor_move();
 		}
 	}
 

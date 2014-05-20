@@ -17,4 +17,4 @@ Currently: Solve a sliding block puzzle. _Arrow keys_ move the cursor. _Wasd_ dr
 * solver for hints?
 * win sound?
 
-Released under [MIT license](http://choosealicense.com/licenses/mit/). You know, because I didn't invent klotski.
+Released under [MIT license](http://choosealicense.com/licenses/mit/). You know, because I [didn't invent](http://en.wikipedia.org/wiki/Klotski) klotski.
