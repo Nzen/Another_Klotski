@@ -51,14 +51,14 @@ function klotski()
 	var ky = new KeyValues();
 	var corner = new Cflag(); // determining shape
 	var moves = 0;
-	var lastCurs = { x:0, y:0 };
+	var lastCurs = { x:0, y:0, d:ky.D };
 	var background = "#0A0A29";
 	bound.test_all();
 	bound.render();
 	//window.addEventListener( "keydown", arrow_pressed, true );
 	window.addEventListener( "keypress", letter_pressed, true );
 
-	function arrow_pressed( ev ) // FIX refactor to using ijkl for cursor moves so it doesn't alter a tall/wide page
+	function arrow_pressed( ev ) // no longer used
 	{
 		var press = ev || window.event;
 		var keyCode = press.keyCode;
@@ -297,36 +297,81 @@ function klotski()
 
 		this.try_block = function( dir )
 		{
-			function update_move_counter() // doesn't account for moving different shape?
+			function dir_to_check( thType, ddir )
 			{
-				//termin.log( lastCurs.x + "-l b-" + bound.cursor.x );
-				var oldX = bound.next_coord( ky.reverse( dir ), bound.cursor.x, isX );
-				var oldY = bound.next_coord( ky.reverse( dir ), bound.cursor.y, !isX );
-				termin.log( "umc: oX_" +oldX+ " oY_" +oldY+ " lX_" +lastCurs.x+ " lY_" +lastCurs.y );
-				if ( lastCurs.x === oldX && lastCurs.y === oldY )
+				switch( thType )
 				{
-					moves--;
+				case corner.tt:
+					return ky.d;
+				case corner.tb:
+					return ky.u;
+				case corner.wl:
+					return ky.r;
+				case corner.wr:
+					return ky.l;
+				case corner.nw:
+					return ky.r;
+				case corner.ne:
+					return ky.l;
+				case corner.sw:
+					return ky.r;
+				case corner.se:
+					return ky.l;
+				default:
+					return -1; // FIX
 				}
-				else
+			}
+			function update_move_counter( dir ) // fix to account for moving same shape & refactor
+			{
+				function was_different( dir )
 				{
+					moves++;
 					lastCurs.x = bound.cursor.x;
 					lastCurs.y = bound.cursor.y;
-					moves++;
+					lastCurs.d = dir;
 				}
-				/*if ( lastCurs === ky.none )
+				if ( lastCurs.d === ky.reverse( dir ) )
 				{
-					lastCurs = dir;
-					moves++;
+					var oldX = bound.next_coord( ky.reverse( dir ), bound.cursor.x, isX );
+					var oldY = bound.next_coord( ky.reverse( dir ), bound.cursor.y, !isX );
+					//termin.log( "umc: oX_" +oldX+ " lX_" +lastCurs.x+ " oY_" +oldY+ " lY_" +lastCurs.y );
+					if ( lastCurs.x === oldX && lastCurs.y === oldY )
+					{
+						moves--;
+					}
+					else // not same cursor position
+					{
+						var here = bound.tiles[ bound.cursor.x ][ bound.cursor.y ];
+						if ( here === corner.s_ )
+						{
+							was_different( dir );
+							return;
+						}
+						if ( here === corner.ne || here === corner.nw || here === corner.se || here === corner.sw )
+						{
+							termin.log( "I don't handle the square case" ); // fix
+							was_different( dir );
+						}
+						else // not a square
+						{
+							var ddiirr = dir_to_check( here, dir );
+							oldX = bound.next_coord( ddiirr, oldX, isX );
+							oldY = bound.next_coord( ddiirr, oldY, !isX );
+							if ( lastCurs.x === oldX && lastCurs.y === oldY )
+							{
+								moves--;
+							}
+							else
+							{
+								was_different( dir );
+							}
+						}
+					}
 				}
-				else if ( lastCurs === ky.reverse(dir) )
+				else // different direction
 				{
-					moves--;
+					was_different( dir );
 				}
-				else
-				{
-					lastCurs = dir;
-					moves++;
-				}*/
 			}
 			function one_block_wide_in( dir, type )
 			{
@@ -669,6 +714,7 @@ function klotski()
 				function new_cursor_right( _x, _y )
 				{	return ( bound.cursor.x == _x && bound.cursor.y == _y )
 				}
+				var failed = 0;
 				var oldX = bound.cursor.x;
 				var oldY = bound.cursor.y;
 				bound.cursor.x = 2;
@@ -699,6 +745,62 @@ function klotski()
 					termin.log( "tacm didn't move R" );
 				bound.cursor.x = oldX;
 				bound.cursor.y = oldY;
+				return failed;
+			}
+			function test_next_coord()
+			{
+				var failed = 0; // fix. move to this
+				var thX = 2;
+				var thY = 2;
+				var answer = bound.next_coord( ky.l, thX, isX );
+				if ( answer != 1 )
+				{
+					termin.log( "tnc: didn't calc l-x" );
+					failed++;
+				}
+				answer = bound.next_coord( ky.l, thY, !isX );
+				if ( answer != 2 )
+				{
+					termin.log( "tnc: didn't calc l-y" );
+					failed++;
+				}
+				answer = bound.next_coord( ky.d, thX, isX );
+				if ( answer != 2 )
+				{
+					termin.log( "tnc: didn't calc d-x" );
+					failed++;
+				}
+				answer = bound.next_coord( ky.d, thY, !isX );
+				if ( answer != 3 )
+				{
+					termin.log( "tnc: didn't calc d-y" );
+					failed++;
+				}
+				answer = bound.next_coord( ky.r, thX, isX );
+				if ( answer != 3 )
+				{
+					termin.log( "tnc: didn't calc r-x" );
+					failed++;
+				}
+				answer = bound.next_coord( ky.r, thY, !isX );
+				if ( answer != 2 )
+				{
+					termin.log( "tnc: didn't calc r-y" );
+					failed++;
+				}
+				answer = bound.next_coord( ky.u, thX, isX );
+				if ( answer != 2 )
+				{
+					termin.log( "tnc: didn't calc u-x" );
+					failed++;
+				}
+				answer = bound.next_coord( ky.u, thY, !isX );
+				if ( answer != 1 )
+				{
+					termin.log( "tnc: didn't calc u-y" );
+					failed++;
+				}
+				return failed;
 			}
 			/*grid = new Array(
 				[p.tt, p.tb, p.tt, p.tb, p.s_],
@@ -706,7 +808,9 @@ function klotski()
 				[p.ne, p.se, p.wr, p.s_, p.o_],
 				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);*/
-			test_apply_cursor_move();
+			var failed = test_next_coord();
+			failed += test_apply_cursor_move();
+			termin.log( (( failed < 1 ) ? "didn't trip tests" : ( failed + " tests failed" )) );
 		}
 	}
 
