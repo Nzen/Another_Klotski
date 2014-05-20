@@ -51,6 +51,7 @@ function klotski()
 	var ky = new KeyValues();
 	var corner = new Cflag(); // determining shape
 	var moves = 0;
+	var lastCurs = { x:0, y:0 };
 	var background = "#0A0A29";
 	bound.test_all();
 	bound.render();
@@ -115,13 +116,13 @@ function klotski()
 		this.reverse = function( dir )
 		{
 			if ( dir === this.l || dir === this.L)
-				return this.r;
+				return this.R;
 			else if ( dir === this.r || dir === this.R )
-				return this.l;
+				return this.L;
 			else if ( dir === this.u || dir === this.U )
-				return this.d;
+				return this.D;
 			else if ( dir === this.d || dir === this.D )
-				return this.u;
+				return this.U;
 		}
 		this.str = function( some )
 		{
@@ -296,6 +297,37 @@ function klotski()
 
 		this.try_block = function( dir )
 		{
+			function update_move_counter() // doesn't account for moving different shape?
+			{
+				//termin.log( lastCurs.x + "-l b-" + bound.cursor.x );
+				var oldX = bound.next_coord( ky.reverse( dir ), bound.cursor.x, isX );
+				var oldY = bound.next_coord( ky.reverse( dir ), bound.cursor.y, !isX );
+				termin.log( "umc: oX_" +oldX+ " oY_" +oldY+ " lX_" +lastCurs.x+ " lY_" +lastCurs.y );
+				if ( lastCurs.x === oldX && lastCurs.y === oldY )
+				{
+					moves--;
+				}
+				else
+				{
+					lastCurs.x = bound.cursor.x;
+					lastCurs.y = bound.cursor.y;
+					moves++;
+				}
+				/*if ( lastCurs === ky.none )
+				{
+					lastCurs = dir;
+					moves++;
+				}
+				else if ( lastCurs === ky.reverse(dir) )
+				{
+					moves--;
+				}
+				else
+				{
+					lastCurs = dir;
+					moves++;
+				}*/
+			}
 			function one_block_wide_in( dir, type )
 			{
 				switch( type )
@@ -447,7 +479,7 @@ function klotski()
 						swap_rest_of_shape( dir, crsType );
 					this.apply_cursor_move( dir );
 				}
-				moves++;
+				update_move_counter( dir );
 				this.render(); //_change();
 			}
 		}
@@ -799,9 +831,8 @@ function klotski()
 
 		this.show_moves = function()
 		{
-			canv.fillStyle = "white";
+			canv.fillStyle = "silver";
 			canv.font = "bold 15px monospace";
-			//canv.rotate( Math.PI * 1.5 );
 			canv.fillText( "moves", 255, 260 );
 			canv.fillText( moves, 260, 280 );
 		}
