@@ -14,8 +14,8 @@ Currently: Solve a sliding block puzzle. _Arrow keys_ move the cursor. _Wasd_ dr
 * ~~check win condition~~
 * ~~move cursor with ijkl instead~~
 * tests for everything
-* move count? smarter move count?
+* ~~move count~~ smarter move count
 * solver for hints?
 * win sound?
 
-Released under [MIT license](http://choosealicense.com/licenses/mit/). You know, because I [didn't invent](http://en.wikipedia.org/wiki/Klotski) klotski.
+Released under [MIT license](http://opensource.org/licenses/MIT). You know, because I [didn't invent](http://en.wikipedia.org/wiki/Klotski) klotski.

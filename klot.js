@@ -1,7 +1,7 @@
 
 // Nicholas Prado
 // a reimplementation of the sliding block puzzle called Klotski
-// MIT license as described at http://choosealicense.com/licenses/mit/
+// MIT license as described at http://opensource.org/licenses/MIT
 
 /* intended evolution
 	~~draw board & pieces~~
@@ -11,10 +11,11 @@
 	~~check win condition~~
 	~~move cursor with ijkl~~
 	tests
-	move count? smarter move count?
-	solver for hints?
+	~~move count~~smarter move count~~
+	save / restore game (with anticheating)?
+	solver for hints? or just statically solve it & draw hints from that?
 	win sound? piece sounds :? // separate branch?
-	draw bounds / blocked detection bar
+	draw blocked direction bar?
 */
 
 window.addEventListener( "load", pageReady, false );
@@ -58,24 +59,23 @@ function klotski()
 	//window.addEventListener( "keydown", arrow_pressed, true );
 	window.addEventListener( "keypress", letter_pressed, true );
 
-	function arrow_pressed( ev ) // no longer used
+	function arrow_pressed( ev ) // no longer used, left for posterity
 	{
 		var press = ev || window.event;
 		var keyCode = press.keyCode;
 		switch( keyCode )
 		{
-			// http://unixpapa.com/js/key.html
-			// left 37, up 38, right 39, down 40
-			case 37:
+			// http://unixpapa.com/js/key.html	javascript-keypress resource
+			case 37: // "left"
 				bound.try_cursor( ky.l );
 				break;
-			case 38:
+			case 38: // "up"
 				bound.try_cursor( ky.u );
 				break;
-			case 39:
+			case 39: // "right"
 				bound.try_cursor( ky.r );
 				break;
-			case 40:
+			case 40: // "down"
 				bound.try_cursor( ky.d );
 				break;
 		}
@@ -84,26 +84,37 @@ function klotski()
 	function letter_pressed( ev )
 	{
 		var keyPressed = String.fromCharCode( ev.keyCode );
+		switch( keyPressed )
+		{
 		// cursor & shape
-		if ( keyPressed === 'a' )
+		case 'a':
 			bound.try_block( ky.L );
-		else if ( keyPressed === 'w' )
+			break;
+		case 'w':
 			bound.try_block( ky.U );
-		else if ( keyPressed === 'd' )
+			break;
+		case 'd':
 			bound.try_block( ky.R );
-		else if ( keyPressed === 's' )
+			break;
+		case 's':
 			bound.try_block( ky.D );
+			break;
 		// cursor only
-		else if ( keyPressed === 'j' )
+		case 'j':
 			bound.try_cursor( ky.l );
-		else if ( keyPressed === 'i' )
+			break;
+		case 'i':
 			bound.try_cursor( ky.u );
-		else if ( keyPressed === 'l' )
+			break;
+		case 'l':
 			bound.try_cursor( ky.r );
-		else if ( keyPressed === 'k' )
+			break;
+		case 'k':
 			bound.try_cursor( ky.d );
-		else
-			return; // irrelevant key
+			break;
+		default:
+			return;
+		}
 	}
 
 	function KeyValues()
@@ -112,35 +123,34 @@ function klotski()
 		this.r = 39; this.d = 40;
 		this.L = 0; this.U = 1;
 		this.R = 2; this.D = 3;
-
-		this.reverse = function( dir )
+	}
+	KeyValues.prototype.reverse = function( dir )
+	{
+		if ( dir === this.l || dir === this.L)
+			return this.R;
+		else if ( dir === this.r || dir === this.R )
+			return this.L;
+		else if ( dir === this.u || dir === this.U )
+			return this.D;
+		else if ( dir === this.d || dir === this.D )
+			return this.U;
+	}
+	KeyValues.prototype.str = function( some )
+	{
+		switch( some )
 		{
-			if ( dir === this.l || dir === this.L)
-				return this.R;
-			else if ( dir === this.r || dir === this.R )
-				return this.L;
-			else if ( dir === this.u || dir === this.U )
-				return this.D;
-			else if ( dir === this.d || dir === this.D )
-				return this.U;
-		}
-		this.str = function( some )
-		{
-			switch( some )
-			{
-			case this.l:
-			case this.L:
-				return "lL";
-			case this.u:
-			case this.U:
-				return "uU";
-			case this.r:
-			case this.R:
-				return "rR";
-			case this.d:
-			case this.D:
-				return "dD";
-			}
+		case this.l:
+		case this.L:
+			return "lL";
+		case this.u:
+		case this.U:
+			return "uU";
+		case this.r:
+		case this.R:
+			return "rR";
+		case this.d:
+		case this.D:
+			return "dD";
 		}
 	}
 
@@ -151,35 +161,38 @@ function klotski()
 		this.tt = 12; this.tb = 13;
 		this.wl = 24; this.wr = 25;
 		this.nw = 36; this.ne = 37; this.sw = 38; this.se = 39;
-		
-		this.str = function( some )
+	}
+	Cflag.prototype.str = function( some )
+	{
+		switch( some )
 		{
-			switch( some )
-			{
-			case this.o_:
-				return "__";
-			case this.s_:
-				return "s_";
-			case this.tt:
-				return "tt";
-			case this.tb:
-				return "tb";
-			case this.wl:
-				return "wl";
-			case this.wr:
-				return "wr";
-			case this.nw:
-				return "nw";
-			case this.ne:
-				return "ne";
-			case this.sw:
-				return "sw";
-			case this.se:
-				return "se";
-			default:
-				return "???";
-			}
+		case this.o_:
+			return "__";
+		case this.s_:
+			return "s_";
+		case this.tt:
+			return "tt";
+		case this.tb:
+			return "tb";
+		case this.wl:
+			return "wl";
+		case this.wr:
+			return "wr";
+		case this.nw:
+			return "nw";
+		case this.ne:
+			return "ne";
+		case this.sw:
+			return "sw";
+		case this.se:
+			return "se";
+		default:
+			return "???";
 		}
+	}
+	Cflag.prototype.is_square = function( type )
+	{
+		return ( type === this.nw || type === this.sw || type === this.se || type === this.ne );
 	}
 
 	function Board( width, depth )
@@ -194,6 +207,12 @@ function klotski()
 				[p.ne, p.se, p.wr, p.s_, p.o_],
 				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);
+			/*var grid = new Array( 	// sparse for testing
+				[p.tt, p.tb, p.o_, p.o_, p.s_],
+				[p.nw, p.sw, p.wl, p.o_, p.o_],
+				[p.ne, p.se, p.wr, p.o_, p.o_],
+				[p.o_, p.o_, p.o_, p.o_, p.s_]
+			);*/
 			return grid;
 		}
 
@@ -297,7 +316,7 @@ function klotski()
 
 		this.try_block = function( dir )
 		{
-			function dir_to_check( thType, ddir )
+			function dir_to_check( thType )
 			{
 				switch( thType )
 				{
@@ -318,10 +337,10 @@ function klotski()
 				case corner.se:
 					return ky.l;
 				default:
-					return -1; // FIX
+					return -1;
 				}
 			}
-			function update_move_counter( dir ) // fix to account for moving same shape & refactor
+			function update_move_counter( dir ) // fix: refactor
 			{
 				function was_different( dir )
 				{
@@ -332,14 +351,13 @@ function klotski()
 				}
 				if ( lastCurs.d === ky.reverse( dir ) )
 				{
-					var oldX = bound.next_coord( ky.reverse( dir ), bound.cursor.x, isX );
-					var oldY = bound.next_coord( ky.reverse( dir ), bound.cursor.y, !isX );
-					//termin.log( "umc: oX_" +oldX+ " lX_" +lastCurs.x+ " oY_" +oldY+ " lY_" +lastCurs.y );
+					var oldX = bound.next_coord( lastCurs.d, bound.cursor.x, isX );
+					var oldY = bound.next_coord( lastCurs.d, bound.cursor.y, !isX );
 					if ( lastCurs.x === oldX && lastCurs.y === oldY )
 					{
 						moves--;
 					}
-					else // not same cursor position
+					else // not the same cursor position
 					{
 						var here = bound.tiles[ bound.cursor.x ][ bound.cursor.y ];
 						if ( here === corner.s_ )
@@ -347,14 +365,29 @@ function klotski()
 							was_different( dir );
 							return;
 						}
-						if ( here === corner.ne || here === corner.nw || here === corner.se || here === corner.sw )
+						else if ( corner.is_square(here) )
 						{
-							termin.log( "I don't handle the square case" ); // fix
-							was_different( dir );
+							var there = bound.tiles[ lastCurs.x ][ lastCurs.y ];
+							if ( corner.is_square( there ) )
+							{	// ie is currently inside the square, then must have been next to square last time
+								moves--;
+								return;
+							}
+							oldX = bound.next_coord( dir, lastCurs.x, isX );
+							oldY = bound.next_coord( dir, lastCurs.y, !isX );
+							var there = bound.tiles[ oldX ][ oldY ];
+							if ( corner.is_square( there ) )
+							{ // ie used to be where square is now, so must have been in square before
+								moves--;
+							}
+							else
+							{
+								was_different( dir );
+							}
 						}
 						else // not a square
 						{
-							var ddiirr = dir_to_check( here, dir );
+							var ddiirr = dir_to_check( here );
 							oldX = bound.next_coord( ddiirr, oldX, isX );
 							oldY = bound.next_coord( ddiirr, oldY, !isX );
 							if ( lastCurs.x === oldX && lastCurs.y === oldY )
@@ -447,7 +480,7 @@ function klotski()
 				else
 					return false;
 			}
-			function swap_square( dir, prevType ) // fix to dry
+			function swap_square( dir, prevType ) // fix: dry?
 			{
 				var _x = bound.cursor.x;
 				var _y = bound.cursor.y;
@@ -473,8 +506,6 @@ function klotski()
 					bound.swap_block( _x, _y-1, dir );
 					bound.swap_block( _x-1, _y-1, dir );
 					break;
-				default:
-					return;//termin.log("wtf?");
 				}
 			}
 			function swap_rest_of_shape( dir, crsType )
@@ -507,7 +538,9 @@ function klotski()
 			if ( unblocked( dir ) )
 			{
 				var crsType = this.tiles[ this.cursor.x ][ this.cursor.y ];
-				var nextType = this.tiles[bound.next_coord(dir, bound.cursor.x, isX)][bound.next_coord(dir, bound.cursor.y, !isX)];
+				var nnX = bound.next_coord( dir, bound.cursor.x, isX );
+				var nnY = bound.next_coord( dir, bound.cursor.y, !isX );
+				var nextType = this.tiles[ nnX ][ nnY ];
 				if ( bound.same_shape( crsType, nextType ) )
 				{
 					this.apply_cursor_move( dir );
@@ -515,7 +548,6 @@ function klotski()
 					this.swap_block( this.cursor.x, this.cursor.y, dir );
 					if ( crsType != corner.s_ )
 						swap_rest_of_shape( dir, crsType );
-					//this.apply_cursor_move( ky.reverse(dir) );
 				}
 				else
 				{
@@ -578,7 +610,7 @@ function klotski()
 			case corner.ne:
 			case corner.sw:
 			case corner.se:
-				return ( typeZ === corner.nw || typeZ === corner.ne || typeZ === corner.sw || typeZ === corner.se );
+				return corner.is_square( typeZ );
 			case corner.s_:
 			default:
 				return false;
@@ -587,6 +619,21 @@ function klotski()
 
 		this.apply_cursor_move = function( arrow )
 		{
+			/*switch( arrow )
+			{
+			case ky.l:
+			case ky.L:
+				this.cursor.x -= 1; // not sure why this didn't work
+			case ky.u:
+			case ky.U:
+				this.cursor.y -= 1;
+			case ky.r:
+			case ky.R:
+				this.cursor.x += 1;
+			case ky.d:
+			case ky.D:
+				this.cursor.y += 1;
+			}*/
 			if ( arrow === ky.l || arrow === ky.L )
 				this.cursor.x -= 1;
 			else if ( arrow === ky.u || arrow === ky.U )
@@ -643,7 +690,7 @@ function klotski()
 					return corner.nw;
 				}
 			}
-			function topCorner( type, sideCoor, isX )
+			function top_corner( type, sideCoor, isX )
 			{
 				switch( type )
 				{
@@ -664,10 +711,101 @@ function klotski()
 					return sideCoor - 1;
 				}
 			}
+			function test_top_corner() // ugh?
+			{
+				var failed = 0;
+				var answer = bound.top_corner( corner.o_, 2, isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc o_-x should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.o_, 2, !isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc o_-y should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.s_, 2, isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc s_-x should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.s_, 2, !isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc s_-y should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.tt, 2, isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc tt-x should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.tt, 2, !isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc tt-y should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.tb, 2, isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc tb-x should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.tb, 2, !isX );
+				if ( answer != 1 )
+				{
+					termin.log( "ttc tb-y should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.wr, 2, isX );
+				if ( answer != 1 )
+				{
+					termin.log( "ttc wr-x should 1, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.wr, 2, !isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc wr-y should 2, is " + answer );
+					failed++;
+				}
+				answer = bound.top_corner( corner.wl, 2, isX );
+				if ( answer != 2 )
+				{
+					termin.log( "ttc wl-x should 2, is " + answer );
+					failed++;
+				}
+				/*top_corner( type, sideCoor, isX )
+			{
+				switch( type )
+				{
+				default:
+				case corner.o_:
+				case corner.s_:
+				case corner.tt:
+				case corner.wl:
+				case corner.nw:
+					return sideCoor;
+				case corner.tb:
+				case corner.sw:
+					return ( !isX ) ? sideCoor - 1 : sideCoor;
+				case corner.wr:
+				case corner.ne:
+					return ( isX ) ? sideCoor - 1 : sideCoor;
+				case corner.se:
+					return sideCoor - 1;
+				}*/
+				return failed;
+			}
 			function redraw( which, cX, cY )
 			{
-				var cX = topCorner( which, cX, isX );
-				var cY = topCorner( which, cY, !isX );
+				var cX = top_corner( which, cX, isX );
+				var cY = top_corner( which, cY, !isX );
 				which = s_type( which );
 				var small = true;
 				bound.top_corner_dr( which, cX, cY );
@@ -721,35 +859,59 @@ function klotski()
 				bound.cursor.y = 2;
 				bound.apply_cursor_move( ky.U );
 				if ( ! new_cursor_right( 2,1 ) )
-					termin.log( "tacm didn't move U" );
+				{
+					termin.log( "tacm error key U, want 2,1 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.apply_cursor_move( ky.u );
 				if ( ! new_cursor_right( 2,0 ) )
-					termin.log( "tacm didn't move u" );
+				{
+					termin.log( "tacm error key u, want 2,0 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.apply_cursor_move( ky.l );
 				if ( ! new_cursor_right( 1,0 ) )
-					termin.log( "tacm didn't move l" );
+				{
+					termin.log( "tacm error key l, want 1,0 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.apply_cursor_move( ky.L );
 				if ( ! new_cursor_right( 0,0 ) )
-					termin.log( "tacm didn't move L" );
+				{
+					termin.log( "tacm error key L, want 0,0 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.apply_cursor_move( ky.d );
 				if ( ! new_cursor_right( 0,1 ) )
-					termin.log( "tacm didn't move d" );
+				{
+					termin.log( "tacm error key d, want 0,1 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.apply_cursor_move( ky.D );
 				if ( ! new_cursor_right( 0,2 ) )
-					termin.log( "tacm didn't move D" );
+				{
+					termin.log( "tacm error key D, want 0,2 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.apply_cursor_move( ky.r );
 				if ( ! new_cursor_right( 1,2 ) )
-					termin.log( "tacm didn't move r" );
+				{
+					termin.log( "tacm error key r, want 1,2 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.apply_cursor_move( ky.R );
 				if ( ! new_cursor_right( 2,2 ) )
-					termin.log( "tacm didn't move R" );
+				{
+					termin.log( "tacm error key R, want 2,2 got " +bound.cursor.x+","+bound.cursor.y );
+					failed++;
+				}
 				bound.cursor.x = oldX;
 				bound.cursor.y = oldY;
 				return failed;
 			}
 			function test_next_coord()
 			{
-				var failed = 0; // fix. move to this
+				var failed = 0;
 				var thX = 2;
 				var thY = 2;
 				var answer = bound.next_coord( ky.l, thX, isX );
@@ -802,6 +964,44 @@ function klotski()
 				}
 				return failed;
 			}
+			function test_within_bounds()
+			{
+				var failed = 0;
+				var oldX = bound.cursor.x;
+				var oldY = bound.cursor.y;
+				bound.cursor.x = 0;
+				bound.cursor.y = 0;
+				if ( bound.within_bounds( ky.l ) || bound.within_bounds( ky.L ) )
+				{
+					termin.log( "twb out at 0,0 with lL" );
+					failed++;
+				}
+				if ( bound.within_bounds( ky.u ) || bound.within_bounds( ky.U ) )
+				{
+					termin.log( "twb out at 0,0 with uU" );
+					failed++;
+				}
+				bound.cursor.x = bound.tiles.length - 1;
+				bound.cursor.y = bound.tiles[0].length - 1;
+				if ( bound.within_bounds( ky.r ) || bound.within_bounds( ky.R ) )
+				{
+					termin.log( "twb out at 4,5 with rR" );
+					failed++;
+				}
+				if ( bound.within_bounds( ky.d ) || bound.within_bounds( ky.D ) )
+				{
+					termin.log( "twb out at 4,5 with dD" );
+					failed++;
+				}
+				bound.cursor.x = oldX;
+				bound.cursor.y = oldY;
+				return failed;
+			}
+			// in_goal_area
+			// swap_block
+			// try_cursor
+			// try_block
+			// test internal functions somehow?
 			/*grid = new Array(
 				[p.tt, p.tb, p.tt, p.tb, p.s_],
 				[p.nw, p.sw, p.wl, p.s_, p.o_],
@@ -810,6 +1010,7 @@ function klotski()
 			);*/
 			var failed = test_next_coord();
 			failed += test_apply_cursor_move();
+			failed += test_within_bounds();
 			termin.log( (( failed < 1 ) ? "didn't trip tests" : ( failed + " tests failed" )) );
 		}
 	}
@@ -928,7 +1129,6 @@ function klotski()
 		{
 			canv.fillStyle = "paleturquoise";
 			canv.font = "bold 20px monospace";
-			//canv.rotate( Math.PI * 1.5 );
 			canv.fillText( "winner winner", 10,210);//1, 210 );
 			canv.fillText( "chicken dinner", 75,240);//100, 240 );
 		}
@@ -943,7 +1143,7 @@ function klotski()
 
 		this.c2p = function( coord )
 		{
-			switch( coord )		// these will move to a rendering thing probably
+			switch( coord )
 			{
 			default:
 			case 0:
