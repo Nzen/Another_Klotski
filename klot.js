@@ -349,14 +349,33 @@ function klotski()
 					lastCurs.y = bound.cursor.y;
 					lastCurs.d = dir;
 				}
+				function square_checks(  )
+				{
+					var there = bound.tiles[ lastCurs.x ][ lastCurs.y ];
+					if ( corner.is_square( there ) )
+					{	// ie is currently inside the square, then must have been next to square last time
+						moves--;
+						return;
+					}
+					var oldX = bound.next_coord( dir, lastCurs.x, isX );
+					var oldY = bound.next_coord( dir, lastCurs.y, !isX );
+					var there = bound.tiles[ oldX ][ oldY ];
+					if ( corner.is_square( there ) )
+					{ // ie used to be where square is now, so must have been in square before
+						moves--;
+					}
+					else
+					{
+						was_different( dir );
+					}
+				}
+				// BEGIN update_move_counter()
 				if ( lastCurs.d === ky.reverse( dir ) )
 				{
 					var oldX = bound.next_coord( lastCurs.d, bound.cursor.x, isX );
 					var oldY = bound.next_coord( lastCurs.d, bound.cursor.y, !isX );
 					if ( lastCurs.x === oldX && lastCurs.y === oldY )
-					{
 						moves--;
-					}
 					else // not the same cursor position
 					{
 						var here = bound.tiles[ bound.cursor.x ][ bound.cursor.y ];
@@ -366,45 +385,21 @@ function klotski()
 							return;
 						}
 						else if ( corner.is_square(here) )
-						{
-							var there = bound.tiles[ lastCurs.x ][ lastCurs.y ];
-							if ( corner.is_square( there ) )
-							{	// ie is currently inside the square, then must have been next to square last time
-								moves--;
-								return;
-							}
-							oldX = bound.next_coord( dir, lastCurs.x, isX );
-							oldY = bound.next_coord( dir, lastCurs.y, !isX );
-							var there = bound.tiles[ oldX ][ oldY ];
-							if ( corner.is_square( there ) )
-							{ // ie used to be where square is now, so must have been in square before
-								moves--;
-							}
-							else
-							{
-								was_different( dir );
-							}
-						}
+							square_checks();
 						else // not a square
 						{
 							var ddiirr = dir_to_check( here );
 							oldX = bound.next_coord( ddiirr, oldX, isX );
 							oldY = bound.next_coord( ddiirr, oldY, !isX );
 							if ( lastCurs.x === oldX && lastCurs.y === oldY )
-							{
 								moves--;
-							}
 							else
-							{
 								was_different( dir );
-							}
 						}
 					}
 				}
 				else // different direction
-				{
 					was_different( dir );
-				}
 			}
 			function one_block_wide_in( dir, type )
 			{
