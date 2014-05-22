@@ -44,21 +44,6 @@ function pageReady()
 
 function klotski()
 {
-	var dom_canvas = document.getElementById( "canvas_here" );
-	var canv = dom_canvas.getContext( "2d" );
-	var isX = true;
-	var bound = new Board( 4, 5 );
-	var pix = new Screen( 218, 270 );
-	var ky = new KeyValues();
-	var corner = new Cflag(); // determining shape
-	var moves = 0;
-	var lastCurs = { x:0, y:0, d:ky.D };
-	var background = "#0A0A29";
-	bound.test_all();
-	bound.render();
-	//window.addEventListener( "keydown", arrow_pressed, true );
-	window.addEventListener( "keypress", letter_pressed, true );
-
 	function arrow_pressed( ev ) // no longer used, left for posterity
 	{
 		var press = ev || window.event;
@@ -112,6 +97,12 @@ function klotski()
 		case 'k':
 			bound.try_cursor( ky.d );
 			break;
+		case '~':
+			save_game(); // make it work, then make it good.
+			break;
+		case '%':
+			restore_game();
+			break;
 		default:
 			return;
 		}
@@ -124,35 +115,38 @@ function klotski()
 		this.L = 0; this.U = 1;
 		this.R = 2; this.D = 3;
 	}
-	KeyValues.prototype.reverse = function( dir )
+	KeyValues.prototype = 
 	{
-		if ( dir === this.l || dir === this.L)
-			return this.R;
-		else if ( dir === this.r || dir === this.R )
-			return this.L;
-		else if ( dir === this.u || dir === this.U )
-			return this.D;
-		else if ( dir === this.d || dir === this.D )
-			return this.U;
-	}
-	KeyValues.prototype.str = function( some )
-	{
-		switch( some )
+		reverse : function( dir )
 		{
-		case this.l:
-		case this.L:
-			return "lL";
-		case this.u:
-		case this.U:
-			return "uU";
-		case this.r:
-		case this.R:
-			return "rR";
-		case this.d:
-		case this.D:
-			return "dD";
+			if ( dir === this.l || dir === this.L)
+				return this.R;
+			else if ( dir === this.r || dir === this.R )
+				return this.L;
+			else if ( dir === this.u || dir === this.U )
+				return this.D;
+			else if ( dir === this.d || dir === this.D )
+				return this.U;
+		},
+		str : function( some )
+		{
+			switch( some )
+			{
+			case this.l:
+			case this.L:
+				return "lL";
+			case this.u:
+			case this.U:
+				return "uU";
+			case this.r:
+			case this.R:
+				return "rR";
+			case this.d:
+			case this.D:
+				return "dD";
+			}
 		}
-	}
+	};
 
 	function Cflag()
 	{
@@ -161,38 +155,38 @@ function klotski()
 		this.tt = 12; this.tb = 13;
 		this.wl = 24; this.wr = 25;
 		this.nw = 36; this.ne = 37; this.sw = 38; this.se = 39;
-	}
-	Cflag.prototype.str = function( some )
-	{
-		switch( some )
+		this.str = function( some )
 		{
-		case this.o_:
-			return "__";
-		case this.s_:
-			return "s_";
-		case this.tt:
-			return "tt";
-		case this.tb:
-			return "tb";
-		case this.wl:
-			return "wl";
-		case this.wr:
-			return "wr";
-		case this.nw:
-			return "nw";
-		case this.ne:
-			return "ne";
-		case this.sw:
-			return "sw";
-		case this.se:
-			return "se";
-		default:
-			return "???";
+			switch( some )
+			{
+			case this.o_:
+				return "__";
+			case this.s_:
+				return "s_";
+			case this.tt:
+				return "tt";
+			case this.tb:
+				return "tb";
+			case this.wl:
+				return "wl";
+			case this.wr:
+				return "wr";
+			case this.nw:
+				return "nw";
+			case this.ne:
+				return "ne";
+			case this.sw:
+				return "sw";
+			case this.se:
+				return "se";
+			default:
+				return "??";
+			}
 		}
-	}
-	Cflag.prototype.is_square = function( type )
-	{
-		return ( type === this.nw || type === this.sw || type === this.se || type === this.ne );
+		this.is_square = function( type )
+		{
+			return ( type === this.nw || type === this.sw || type === this.se || type === this.ne );
+		}
 	}
 
 	function Board( width, depth )
@@ -207,11 +201,11 @@ function klotski()
 				[p.ne, p.se, p.wr, p.s_, p.o_],
 				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);
-			/*var grid = new Array( 	// sparse for testing
-				[p.tt, p.tb, p.o_, p.o_, p.s_],
-				[p.nw, p.sw, p.wl, p.o_, p.o_],
-				[p.ne, p.se, p.wr, p.o_, p.o_],
-				[p.o_, p.o_, p.o_, p.o_, p.s_]
+			/*var grid = new Array( 	// sparse for testing // fix before using
+				[corner.tt, corner.tb, corner.o_, corner.o_, corner.s_],
+				[corner.nw, corner.sw, corner.wl, corner.o_, corner.o_],
+				[corner.ne, corner.se, corner.wr, corner.o_, corner.o_],
+				[corner.o_, corner.o_, p.o_, p.o_, p.s_]
 			);*/
 			return grid;
 		}
@@ -239,8 +233,8 @@ function klotski()
 				for ( var yy = 0; yy < this.tiles[xx].length; yy++ )
 				{
 					currT = this.tiles[xx][yy];
-					this.top_corner_dr( currT, xx, yy ); // for clients
-					//this.blockwise_dr( currT, xx, yy ); // for testing
+					//this.top_corner_dr( currT, xx, yy ); // for clients
+					this.blockwise_dr( currT, xx, yy ); // for testing
 				}
 			}
 		}
@@ -252,7 +246,7 @@ function klotski()
 			default:
 			case corner.o_:
 				if ( this.in_goal_area( xx, yy ) )
-					return;
+					return; // drawn in goal_area() already
 				else
 					pix.dr_bk_txt( xx, yy, background, corner.str(type) );
 				break;
@@ -614,29 +608,25 @@ function klotski()
 
 		this.apply_cursor_move = function( arrow )
 		{
-			/*switch( arrow )
+			switch( arrow )
 			{
 			case ky.l:
 			case ky.L:
-				this.cursor.x -= 1; // not sure why this didn't work
+				this.cursor.x -= 1;
+				break;
 			case ky.u:
 			case ky.U:
 				this.cursor.y -= 1;
+				break;
 			case ky.r:
 			case ky.R:
 				this.cursor.x += 1;
+				break;
 			case ky.d:
 			case ky.D:
 				this.cursor.y += 1;
-			}*/
-			if ( arrow === ky.l || arrow === ky.L )
-				this.cursor.x -= 1;
-			else if ( arrow === ky.u || arrow === ky.U )
-				this.cursor.y -= 1;
-			else if ( arrow === ky.r || arrow === ky.R )
-				this.cursor.x += 1;
-			else if ( arrow === ky.d || arrow === ky.D )
-				this.cursor.y += 1;
+				break;
+			}
 		}
 
 		this.swap_block = function( thX, thY, dir )
@@ -1009,6 +999,91 @@ function klotski()
 			termin.log( (( failed < 1 ) ? "didn't trip tests" : ( failed + " tests failed" )) );
 		}
 	}
+	Board.prototype.serialize_tiles = function()
+	{
+		// current plan, use the printing strings
+		//termin.log( "I don't save yet" );
+		var stream = moves + "-";
+		for ( var ind_x = 0; ind_x < bound.tiles.length; ind_x++ )
+		{
+			for ( var ind_y = 0; ind_y < bound.tiles[0].length; ind_y++ )
+			{
+				stream += corner.str( bound.tiles[ ind_x ][ ind_y ] ) + "*"; // un transpose for easy list construction
+			}
+			stream = stream.substr( 0, stream.length - 1 ); // cut the hanging *
+			stream += "/";
+		}
+		stream = stream.substr( 0, stream.length - 1 ); // cut the hanging '/'	
+		return stream;
+	}
+	Board.prototype.deserialize_tiles = function( userInput )
+	{
+		function de_str( p, typeStr )
+		{
+			switch( typeStr )
+			{
+			case "__":
+				return p.o_;
+			case "s_":
+				return p.s_;
+			case "tt":
+				return p.tt;
+			case "tb":
+				return p.tb;
+			case "wl":
+				return p.wl;
+			case "wr":
+				return p.wr;
+			case "nw":
+				return p.nw;
+			case "ne":
+				return p.ne;
+			case "sw":
+				return p.sw;
+			case "se":
+				return p.se;
+			default:
+				return -1;
+			}
+		}
+		// BEGIN deserialize_tiles()
+		termin.log( "outset uI = " + userInput );
+		var pastMoveI = userInput.indexOf( '-' );
+		if ( pastMoveI < 0 )
+		{
+			return { status: "broken" };
+		}
+		var mmoves = userInput.substr( 0, pastMoveI );
+		mmoves = parseInt( mmoves, 10 );
+		if ( mmoves === NaN )
+		{
+			return { status: "broken" };
+		}
+		userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
+		termin.log( "ds mm=" + mmoves + " pmi-" + pastMoveI + " uI=" + userInput );
+		var failed = false;
+		var p = corner;
+		var outer = userInput.split( '/' );
+		for ( var lis = 0; lis < outer.length; lis++ ) // FIXING this whole thing
+		{
+			//outer[ lis ] = outer[ lis ].substr( 0, outer[lis].length - 1 );
+			outer[ lis ] = outer[ lis ].split( '*' );
+		}
+		for ( var ind = 0; ind < outer.length; ind++ )
+		{
+			for ( var dni = 0; dni < outer[0].length; dni++ )
+			outer[ ind ][ dni ] = de_str( p, outer[ind][dni] );
+			if ( outer[ ind ][ dni ] < 0 )
+				failed = true;
+		}
+		/*var arr = new Array(
+			[p.tt, p.tb, p.tt, p.tb, p.s_],
+			[p.nw, p.sw, p.wl, p.s_, p.o_],
+			[p.ne, p.se, p.wr, p.s_, p.o_],
+			[p.tt, p.tb, p.tt, p.tb, p.s_]
+		);*/
+		return { arra:outer, status:( (failed) ? "broken" : "okay" ) };
+	}
 
 	function Screen( width, height)
 	{
@@ -1167,4 +1242,43 @@ function klotski()
 			return this.c2p( coord ) - 5;
 		}
 	}
+
+	function save_game()
+	{
+		//termin.log( ky.str( ky.l) );
+		//termin.log( bound.serialize_tiles() );//serialize_tiles() );
+		document.getElementById("raw").value = bound.serialize_tiles();
+		// alert("sudaved"); // :B
+	}
+
+	function restore_game()
+	{
+		termin.log( "I don't restore yet" );
+		var newGrid = bound.deserialize_tiles( document.getElementById("raw").value );
+		if ( newGrid.status === "okay" )
+		{
+			bound.tiles = newGrid.arra;
+			bound.render();
+			// alert("wrustowred"); // :B
+		}
+		else
+			document.getElementById("raw").value = "Nice try cheater."
+	}
+	//var sssave = document.getElementById("save"); // because this scope is closed to the outside world for namespace
+	//sssave.addEventListener("onclick", save_game, true);
+	var dom_canvas = document.getElementById( "canvas_here" );
+	var canv = dom_canvas.getContext( "2d" );
+	var isX = true;
+	var bound = new Board( 4, 5 );
+	var pix = new Screen( 218, 270 );
+	var ky = new KeyValues();
+	var corner = new Cflag(); // determining shape
+	var moves = 0;
+	var lastCurs = { x:0, y:0, d:ky.D };
+	var background = "#0A0A29";
+	bound.test_all();
+	bound.render();
+	//window.addEventListener( "keydown", arrow_pressed, true ); // ah, false here would cut movement
+	window.addEventListener( "keypress", letter_pressed, true ); // won't work with IE < 9, but neither will canvas
+	
 }

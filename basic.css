@@ -13,3 +13,19 @@ a:visited
 .main_div
 {	width:80%;
 	float:left; }
+input[type=button]
+{
+	background-color:#2A0A29;
+	color:Gray;
+	border:2px solid #2A3A29;
+}
+input[type=button]:hover
+{
+	background-color:Purple;
+}
+input[type=text]
+{
+	background-color:DarkBlue;
+	color:Gray;
+	border:2px solid #2A3A29;
+}
