@@ -1001,14 +1001,13 @@ function klotski()
 	}
 	Board.prototype.serialize_tiles = function()
 	{
-		// current plan, use the printing strings
-		//termin.log( "I don't save yet" );
+		// current plan, use the printing strings. maybe enum vals later. why not now? delimiters irrelevate padding idea
 		var stream = moves + "-";
 		for ( var ind_x = 0; ind_x < bound.tiles.length; ind_x++ )
 		{
 			for ( var ind_y = 0; ind_y < bound.tiles[0].length; ind_y++ )
 			{
-				stream += corner.str( bound.tiles[ ind_x ][ ind_y ] ) + "*"; // un transpose for easy list construction
+				stream += corner.str( bound.tiles[ ind_x ][ ind_y ] ) + "*";
 			}
 			stream = stream.substr( 0, stream.length - 1 ); // cut the hanging *
 			stream += "/";
@@ -1018,71 +1017,101 @@ function klotski()
 	}
 	Board.prototype.deserialize_tiles = function( userInput )
 	{
-		function de_str( p, typeStr )
+		function de_str( typeStr )
 		{
 			switch( typeStr )
 			{
 			case "__":
-				return p.o_;
+				return corner.o_;
 			case "s_":
-				return p.s_;
+				return corner.s_;
 			case "tt":
-				return p.tt;
+				return corner.tt;
 			case "tb":
-				return p.tb;
+				return corner.tb;
 			case "wl":
-				return p.wl;
+				return corner.wl;
 			case "wr":
-				return p.wr;
+				return corner.wr;
 			case "nw":
-				return p.nw;
+				return corner.nw;
 			case "ne":
-				return p.ne;
+				return corner.ne;
 			case "sw":
-				return p.sw;
+				return corner.sw;
 			case "se":
-				return p.se;
+				return corner.se;
 			default:
 				return -1;
 			}
 		}
-		// BEGIN deserialize_tiles()
-		termin.log( "outset uI = " + userInput );
-		var pastMoveI = userInput.indexOf( '-' );
-		if ( pastMoveI < 0 )
+		function lex_stream( userInput )
 		{
-			return { status: "broken" };
+			termin.log( "outset uI = " + userInput );
+			var pastMoveI = userInput.indexOf( '-' );
+			if ( pastMoveI < 0 )
+			{
+				return { status: "broken" };
+			}
+			var mmoves = userInput.substr( 0, pastMoveI );
+			mmoves = parseInt( mmoves, 10 );
+			if ( mmoves === NaN )
+			{
+				return { status: "broken" };
+			}
+			userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
+			termin.log( "ds mm=" + mmoves + " pmi-" + pastMoveI + " uI=" + userInput );
+			var outer = userInput.split( '/' );
+			for ( var lis = 0; lis < outer.length; lis++ )
+			{
+				outer[ lis ] = outer[ lis ].split( '*' );
+			}
+			var failed = false;
+			var p = corner;
+			for ( var ind = 0; ind < outer.length; ind++ )
+			{
+				for ( var dni = 0; dni < outer[0].length; dni++ )
+				{
+					outer[ ind ][ dni ] = de_str( outer[ind][dni] );
+					if ( outer[ ind ][ dni ] < 0 )
+						failed = true;
+				}
+			}
+			return { arra:outer, status:failed };
 		}
-		var mmoves = userInput.substr( 0, pastMoveI );
-		mmoves = parseInt( mmoves, 10 );
-		if ( mmoves === NaN )
+		function parse_grid( typeCrate )
 		{
-			return { status: "broken" };
-		}
-		userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
-		termin.log( "ds mm=" + mmoves + " pmi-" + pastMoveI + " uI=" + userInput );
-		var failed = false;
-		var p = corner;
-		var outer = userInput.split( '/' );
-		for ( var lis = 0; lis < outer.length; lis++ ) // FIXING this whole thing
-		{
-			//outer[ lis ] = outer[ lis ].substr( 0, outer[lis].length - 1 );
-			outer[ lis ] = outer[ lis ].split( '*' );
-		}
-		for ( var ind = 0; ind < outer.length; ind++ )
-		{
-			for ( var dni = 0; dni < outer[0].length; dni++ )
-			outer[ ind ][ dni ] = de_str( p, outer[ind][dni] );
-			if ( outer[ ind ][ dni ] < 0 )
-				failed = true;
-		}
 		/*var arr = new Array(
 			[p.tt, p.tb, p.tt, p.tb, p.s_],
 			[p.nw, p.sw, p.wl, p.s_, p.o_],
 			[p.ne, p.se, p.wr, p.s_, p.o_],
 			[p.tt, p.tb, p.tt, p.tb, p.s_]
 		);*/
-		return { arra:outer, status:( (failed) ? "broken" : "okay" ) };
+			var failed = true;
+			var tile = corner.o_;
+			// test that the inner lists are of equal length
+			var lim = typeCrate.arra[ 0 ].length; // assuming they are the same
+			for ( var ro = 0; ro < lim; ro++ )
+			{
+				if ( ro > 0 )
+				termin.log("bla"); // actually stagger checks & unroll the loop?
+				/* ie I want to see that tb follows tt, the list doesn't end with tt
+				the square is all adjacent, etc. Perhaps I should analyze these shapewise?
+				this looks like a big if else field here. Then extract them into small functions
+				that send the types of the relevant square. Okay, it is shapewise.
+				*/
+			}
+		}
+		// BEGIN deserialize_tiles()
+		var typeCrate = lex_stream( userInput );
+		if ( failed )
+		{
+			typeCrate.status = ( (failed) ? "broken" : "okay" );
+			return typeCrate;
+		}
+		typeCrate = parse_grid( typeCrate );
+		typeCrate.status = ( (failed) ? "broken" : "okay" );
+		return typeCrate;
 	}
 
 	function Screen( width, height)
