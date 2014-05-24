@@ -1081,6 +1081,16 @@ function klotski()
 		}
 		function parse_grid( typeCrate )
 		{
+			function isnt_square( grid )
+			{
+				var len = grid[0].length;
+				for ( var ro = 0; ro < grid.length; ro++ )
+				{
+					if ( ro != len )
+						return true;
+				} // else
+				return false;
+			}
 		/*var arr = new Array(
 			[p.tt, p.tb, p.tt, p.tb, p.s_],
 			[p.nw, p.sw, p.wl, p.s_, p.o_],
@@ -1088,6 +1098,12 @@ function klotski()
 			[p.tt, p.tb, p.tt, p.tb, p.s_]
 		);*/
 			var failed = true;
+			if ( isnt_square(typeCrate.arra) )
+			{
+				typeCrate.status = true;
+				return;
+			}
+				
 			var tile = corner.o_;
 			// test that the inner lists are of equal length
 			var lim = typeCrate.arra[ 0 ].length; // assuming they are the same
@@ -1100,17 +1116,24 @@ function klotski()
 				this looks like a big if else field here. Then extract them into small functions
 				that send the types of the relevant square. Okay, it is shapewise.
 				*/
+				/*				
+				if ( bound.tiles[1][3] === corner.nw ) // unless I put that in parse
+				{
+					document.getElementById("raw").value = "Nice try cheater.";
+					return;
+				}
+				*/
 			}
 		}
 		// BEGIN deserialize_tiles()
 		var typeCrate = lex_stream( userInput );
-		if ( failed )
+		if ( typeCrate.status ) // failed
 		{
-			typeCrate.status = ( (failed) ? "broken" : "okay" );
-			return typeCrate;
+			typeCrate.status = ( (typeCrate.status) ? "broken" : "okay" );
+			return typeCrate; // turned bool to str
 		}
 		typeCrate = parse_grid( typeCrate );
-		typeCrate.status = ( (failed) ? "broken" : "okay" );
+		typeCrate.status = ( (typeCrate.status) ? "broken" : "okay" );
 		return typeCrate;
 	}
 
@@ -1287,12 +1310,18 @@ function klotski()
 		if ( newGrid.status === "okay" )
 		{
 			bound.tiles = newGrid.arra;
+			if ( bound.tiles[1][3] === corner.nw ) // unless I put that in parse
+			{
+				document.getElementById("raw").value = "Nice try cheater.";
+				return;
+			}
 			bound.render();
 			// alert("wrustowred"); // :B
 		}
 		else
-			document.getElementById("raw").value = "Nice try cheater."
+			document.getElementById("raw").value = "Nice try cheater.";
 	}
+	// BEGIN klotski()
 	//var sssave = document.getElementById("save"); // because this scope is closed to the outside world for namespace
 	//sssave.addEventListener("onclick", save_game, true);
 	var dom_canvas = document.getElementById( "canvas_here" );
