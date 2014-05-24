@@ -72,29 +72,29 @@ function klotski()
 		switch( keyPressed )
 		{
 		// cursor & shape
-		case 'a':
+		case 'A':
 			bound.try_block( ky.L );
 			break;
-		case 'w':
+		case 'W':
 			bound.try_block( ky.U );
 			break;
-		case 'd':
+		case 'D':
 			bound.try_block( ky.R );
 			break;
-		case 's':
+		case 'S':
 			bound.try_block( ky.D );
 			break;
 		// cursor only
-		case 'j':
+		case 'a':
 			bound.try_cursor( ky.l );
 			break;
-		case 'i':
+		case 'w':
 			bound.try_cursor( ky.u );
 			break;
-		case 'l':
+		case 'd':
 			bound.try_cursor( ky.r );
 			break;
-		case 'k':
+		case 's':
 			bound.try_cursor( ky.d );
 			break;
 		case '~':
