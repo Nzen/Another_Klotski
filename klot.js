@@ -1109,6 +1109,7 @@ function klotski()
 			var lim = typeCrate.arra[ 0 ].length; // assuming they are the same
 			for ( var ro = 0; ro < lim; ro++ )
 			{
+				switch()
 				if ( ro > 0 )
 				termin.log("bla"); // actually stagger checks & unroll the loop?
 				/* ie I want to see that tb follows tt, the list doesn't end with tt
