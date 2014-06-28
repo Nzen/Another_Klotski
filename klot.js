@@ -115,7 +115,7 @@ function klotski()
 		this.L = 0; this.U = 1;
 		this.R = 2; this.D = 3;
 	}
-	KeyValues.prototype = 
+	KeyValues.prototype =
 	{
 		reverse : function( dir )
 		{
@@ -155,7 +155,10 @@ function klotski()
 		this.tt = 12; this.tb = 13;
 		this.wl = 24; this.wr = 25;
 		this.nw = 36; this.ne = 37; this.sw = 38; this.se = 39;
-		this.str = function( some )
+	}
+  Cflag.prototype =
+  {
+    str : function( some )
 		{
 			switch( some )
 			{
@@ -182,12 +185,12 @@ function klotski()
 			default:
 				return "??";
 			}
-		}
-		this.is_square = function( type )
+		},
+      is_square : function( type )
 		{
 			return ( type === this.nw || type === this.sw || type === this.se || type === this.ne );
 		}
-	}
+  };
 
 	function Board( width, depth )
 	{
@@ -1012,7 +1015,7 @@ function klotski()
 			stream = stream.substr( 0, stream.length - 1 ); // cut the hanging *
 			stream += "/";
 		}
-		stream = stream.substr( 0, stream.length - 1 ); // cut the hanging '/'	
+		stream = stream.substr( 0, stream.length - 1 ); // cut the hanging '/'
 		return stream;
 	}
 	Board.prototype.deserialize_tiles = function( userInput )
@@ -1099,41 +1102,58 @@ function klotski()
 				return false; // is square
 			}
 
-			function square_broken( grid, cc, rr ) // FIX
+			function square_broken( grid, rr, cc ) // FIX
 			{
-				return false; // CUT after I validate the rest of the shapes
-				var not_broken = false;
-				var first = grid[cc][rr];
+				var first = grid[rr][cc];
+				var second, third, fourth = first;
 				var min = 1;
-				var r_lim = grid[0].length - 1;
-				var c_lim = grid.length - 1;
-				termin.log( " fix by checking in a square fashion." );
+				var sides_broken = false;
+				var r_lim = grid.length - 1;
+				var c_lim = grid[0].length - 1;
 				//switch ( grid[rr][cc] )
 				if ( first === corner.nw )
 				{
-					return ( cc >= r_lim || rr >= c_lim  ); // FIX return broken version
+					sides_broken = ( rr >= r_lim || cc >= c_lim );
+					if ( sides_broken ) return sides_broken;
+					second = grid[ rr + 1 ][ cc ];
+					third = grid[ rr ][ cc + 1 ];
+					fourth = grid[ rr + 1 ][ cc + 1 ];
+					return ( second != corner.ne || third != corner.sw || fourth != corner.se );
 				}
 				else if ( first === corner.ne )
 				{
-					return ( cc >= r_lim || rr < min  );
+					sides_broken = ( rr >= r_lim || cc < min );
+					if ( sides_broken ) return sides_broken;
+					second = grid[ rr - 1 ][ cc ];
+					third = grid[ rr - 1 ][ cc + 1 ];
+					fourth = grid[ rr ][ cc + 1 ];
+					return ( second != corner.nw || third != corner.sw || fourth != corner.se );
 				}
-				else if ( first === corner.sw )
+				else if ( first === corner.sw ) // 4-tt*tb*tt*tb*s_/__*nw*sw*wl*s_/__*ne*se*wr*s_/tt*tb*tt*tb*s_ 
 				{
-				//termin.log(grid.length +" "+(cc+1));
-					return ( cc < min || rr >= c_lim  );
+					sides_broken = ( rr < min || cc >= c_lim );
+					if ( sides_broken ) return sides_broken;
+					second = grid[ rr ][ cc - 1 ];
+					third = grid[ rr - 1 ][ cc - 1 ];
+					fourth = grid[ rr ][ cc + 1 ];
+					return ( second != corner.nw || third != corner.ne || fourth != corner.se );
 				}
 				else if ( first === corner.se )
 				{
-					return ( cc < min || rr < min  );
+					sides_broken = ( rr < min || cc < min );
+					if ( sides_broken ) return sides_broken;
+					second = grid[ rr - 1 ][ cc - 1 ];
+					third = grid[ rr ][ cc - 1 ];
+					fourth = grid[ rr - 1 ][ cc ];
+					return ( second != corner.nw || third != corner.ne || fourth != corner.sw );
 				}
 				else
 					termin.log("what");
-					//return ( && grid[ rr + 1 ][cc] === corner.wr );
 			}
 
-			function broken_shape( grid, cc, rr )
+			function broken_shape( grid, rr, cc )
 			{
-			termin.log( corner.str(grid[rr][cc]) );
+			//termin.log( corner.str(grid[rr][cc]) );
 				var not_broken = false;
 				switch ( grid[rr][cc] )
 				{
@@ -1143,7 +1163,6 @@ function klotski()
 				case corner.tt:
 					return ( rr + 1 >= grid[rr].length || grid[rr][ cc + 1 ] != corner.tb );
 				case corner.tb:
-			termin.log( cc <= 0 );
 					return ( cc <= 0 || grid[rr][ cc - 1 ] != corner.tt );
 				case corner.wl:
 					return ( cc + 1 >= grid[rr][cc].length || grid[ rr + 1 ][cc] != corner.wr );
@@ -1158,12 +1177,12 @@ function klotski()
 					else
 					{
 						var broke = square_broken( grid, rr, cc );
-						checked_square = true;
+						checked_square = true; // put a fifth piece and this short circuited it ...
 						return broke;
 					}
 				}
 			}
-			/*var arr = new Array(
+			/*var arr = new Array(           CUT when through
 				[p.tt, p.tb, p.tt, p.tb, p.s_],
 				[p.nw, p.sw, p.wl, p.s_, p.o_],
 				[p.ne, p.se, p.wr, p.s_, p.o_],
@@ -1196,23 +1215,10 @@ function klotski()
 			}
 			typeCrate.status = false;
 			return typeCrate;
-			// actually stagger checks & unroll the loop?
-				/* ie I want to see that tb follows tt, the list doesn't end with tt
-				the square is all adjacent, etc. Perhaps I should analyze these shapewise?
-				this looks like a big if else field here. Then extract them into small functions
-				that send the types of the relevant square. Okay, it is shapewise.
-				*/
-				/*				
-				if ( bound.tiles[1][3] === corner.nw ) // unless I put that in parse
-				{
-					document.getElementById("raw").value = "Nice try cheater.";
-					return;
-				}
-				*/
 		}
 		// BEGIN deserialize_tiles()
 		var typeCrate = lex_stream( userInput );
-		if ( typeCrate.status ) // failed
+		if ( typeCrate.status ) // failed lex
 		{
 			typeCrate.status = ( (typeCrate.status) ? "broken" : "okay" );
 			return typeCrate; // turned bool to str
@@ -1348,6 +1354,13 @@ function klotski()
 			canv.fillText( moves, 260, 280 );
 		}
 
+		this.bad_restore = function()
+		{
+			canv.fillStyle = "paleturquoise";
+			canv.font = "bold 20px monospace";
+			canv.fillText( "COULD NOT RESTORE", 40,210);//1, 210 );
+		}
+
 		this.c2p = function( coord )
 		{
 			switch( coord )
@@ -1373,7 +1386,7 @@ function klotski()
 			35:243 87:243 139:243 191:243
 			*/
 		}
-		
+
 		this.cur2p = function( coord )
 		{
 			return this.c2p( coord ) - 5;
@@ -1390,7 +1403,7 @@ function klotski()
 
 	function restore_game()
 	{
-		termin.log( "I don't restore yet" );
+		termin.log( "I don't restore correctly yet" );
 		var newGrid = bound.deserialize_tiles( document.getElementById("raw").value );
 		if ( newGrid.status === "okay" )
 		{
@@ -1401,10 +1414,10 @@ function klotski()
 				return;
 			}
 			bound.render();
-			// alert("wrustowred"); // :B
+			termin.log( "game restored" );
 		}
 		else
-			document.getElementById("raw").value = "Nice try cheater.";
+			pix.bad_restore();
 	}
 	// BEGIN klotski()
 	//var sssave = document.getElementById("save"); // because this scope is closed to the outside world for namespace
@@ -1423,5 +1436,5 @@ function klotski()
 	bound.render();
 	//window.addEventListener( "keydown", arrow_pressed, true ); // ah, false here would cut movement
 	window.addEventListener( "keypress", letter_pressed, true ); // won't work with IE < 9, but neither will canvas
-	
+
 }
