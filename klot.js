@@ -1051,16 +1051,18 @@ function klotski()
 			var pastMoveI = userInput.indexOf( '-' );
 			if ( pastMoveI < 0 )
 			{
+				termin.log( "illegit: moves not separated from game state" );
 				return { status: "broken" };
 			}
 			var mmoves = userInput.substr( 0, pastMoveI );
 			mmoves = parseInt( mmoves, 10 );
 			if ( mmoves === NaN )
 			{
+				termin.log( "illegit: moves isn't a number" );
 				return { status: "broken" };
 			}
 			userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
-			termin.log( "ds mm=" + mmoves + " pmi-" + pastMoveI + " uI=" + userInput );
+			termin.log( "ds mm=" + mmoves + " uI=" + userInput ); // + " pmi-" + pastMoveI
 			var outer = userInput.split( '/' );
 			for ( var lis = 0; lis < outer.length; lis++ )
 			{
@@ -1074,44 +1076,127 @@ function klotski()
 				{
 					outer[ ind ][ dni ] = de_str( outer[ind][dni] );
 					if ( outer[ ind ][ dni ] < 0 )
-						failed = true;
+					{
+						termin.log( "illegit: negative corner type" );
+						return { status: "broken" };
+					}
 				}
 			}
 			return { arra:outer, status:failed };
 		}
 		function parse_grid( typeCrate )
 		{
-			function isnt_square( grid )
+			function isnt_rectangular( grid )
 			{
 				var len = grid[0].length;
+				var row_l = 0;
 				for ( var ro = 0; ro < grid.length; ro++ )
 				{
-					if ( ro != len )
+					row_l = grid[ ro ].length;
+					if ( row_l != len )
 						return true;
 				} // else
-				return false;
+				return false; // is square
 			}
-		/*var arr = new Array(
-			[p.tt, p.tb, p.tt, p.tb, p.s_],
-			[p.nw, p.sw, p.wl, p.s_, p.o_],
-			[p.ne, p.se, p.wr, p.s_, p.o_],
-			[p.tt, p.tb, p.tt, p.tb, p.s_]
-		);*/
+
+			function square_broken( grid, cc, rr ) // FIX
+			{
+				return false; // CUT after I validate the rest of the shapes
+				var not_broken = false;
+				var first = grid[cc][rr];
+				var min = 1;
+				var r_lim = grid[0].length - 1;
+				var c_lim = grid.length - 1;
+				termin.log( " fix by checking in a square fashion." );
+				//switch ( grid[rr][cc] )
+				if ( first === corner.nw )
+				{
+					return ( cc >= r_lim || rr >= c_lim  ); // FIX return broken version
+				}
+				else if ( first === corner.ne )
+				{
+					return ( cc >= r_lim || rr < min  );
+				}
+				else if ( first === corner.sw )
+				{
+				//termin.log(grid.length +" "+(cc+1));
+					return ( cc < min || rr >= c_lim  );
+				}
+				else if ( first === corner.se )
+				{
+					return ( cc < min || rr < min  );
+				}
+				else
+					termin.log("what");
+					//return ( && grid[ rr + 1 ][cc] === corner.wr );
+			}
+
+			function broken_shape( grid, cc, rr )
+			{
+			termin.log( corner.str(grid[rr][cc]) );
+				var not_broken = false;
+				switch ( grid[rr][cc] )
+				{
+				case corner.o_:
+				case corner.s_:
+					return not_broken; // FIX, below needs to be flipped: transpose
+				case corner.tt:
+					return ( rr + 1 >= grid[rr].length || grid[rr][ cc + 1 ] != corner.tb );
+				case corner.tb:
+			termin.log( cc <= 0 );
+					return ( cc <= 0 || grid[rr][ cc - 1 ] != corner.tt );
+				case corner.wl:
+					return ( cc + 1 >= grid[rr][cc].length || grid[ rr + 1 ][cc] != corner.wr );
+				case corner.wr:
+					return ( cc < 1 || grid[ rr - 1 ][cc] != corner.wl );
+				case corner.nw:
+				case corner.ne:
+				case corner.sw:
+				case corner.se:
+					if ( checked_square )
+						return not_broken; // else would have exited
+					else
+					{
+						var broke = square_broken( grid, rr, cc );
+						checked_square = true;
+						return broke;
+					}
+				}
+			}
+			/*var arr = new Array(
+				[p.tt, p.tb, p.tt, p.tb, p.s_],
+				[p.nw, p.sw, p.wl, p.s_, p.o_],
+				[p.ne, p.se, p.wr, p.s_, p.o_],
+				[p.tt, p.tb, p.tt, p.tb, p.s_]
+			);*/
+			// BEGIN parse_grid()
 			var failed = true;
-			if ( isnt_square(typeCrate.arra) )
+			// test that the inner lists are of equal length
+			if ( isnt_rectangular(typeCrate.arra) )
 			{
 				typeCrate.status = true;
-				return;
+				termin.log( " isn't a rectangular input " );
+				return typeCrate;
 			}
-				
-			var tile = corner.o_;
-			// test that the inner lists are of equal length
-			var lim = typeCrate.arra[ 0 ].length; // assuming they are the same
+			var checked_square = false; // optimization concession, the others are no good
+			var lim = typeCrate.arra.length;
+			var c_lim = typeCrate.arra[ 0 ].length; // assuming they are the same
 			for ( var ro = 0; ro < lim; ro++ )
 			{
-				switch()
-				if ( ro > 0 )
-				termin.log("bla"); // actually stagger checks & unroll the loop?
+				for ( var col = 0; col < c_lim; col++ )
+				{
+					if ( broken_shape( typeCrate.arra, ro, col ) )
+					{
+						typeCrate.status = true;
+						termin.log( "broken shape @ " + ro + " " + col + " " + corner.str(typeCrate.arra[ro][col]) );
+						return typeCrate;
+					}
+				}
+				termin.log( "row " + ro + " done" );
+			}
+			typeCrate.status = false;
+			return typeCrate;
+			// actually stagger checks & unroll the loop?
 				/* ie I want to see that tb follows tt, the list doesn't end with tt
 				the square is all adjacent, etc. Perhaps I should analyze these shapewise?
 				this looks like a big if else field here. Then extract them into small functions
@@ -1124,7 +1209,6 @@ function klotski()
 					return;
 				}
 				*/
-			}
 		}
 		// BEGIN deserialize_tiles()
 		var typeCrate = lex_stream( userInput );
