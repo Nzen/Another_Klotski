@@ -12,7 +12,7 @@
 	~~move cursor with ijkl~~
 	tests
 	~~move count~~smarter move count~~
-	save / restore game (with anticheating)?
+	~~save / restore game (with anticheating)~~
 	solver for hints? or just statically solve it & draw hints from that?
 	win sound? piece sounds :? // separate branch?
 	draw blocked direction bar?
@@ -236,8 +236,8 @@ function klotski()
 				for ( var yy = 0; yy < this.tiles[xx].length; yy++ )
 				{
 					currT = this.tiles[xx][yy];
-					//this.top_corner_dr( currT, xx, yy ); // for clients
-					this.blockwise_dr( currT, xx, yy ); // for testing
+					this.top_corner_dr( currT, xx, yy ); // for clients
+					//this.blockwise_dr( currT, xx, yy ); // for testing
 				}
 			}
 		}
@@ -702,92 +702,72 @@ function klotski()
 			function test_top_corner() // ugh?
 			{
 				var failed = 0;
-				var answer = bound.top_corner( corner.o_, 2, isX );
+				var answer = top_corner( corner.o_, 2, isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc o_-x should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.o_, 2, !isX );
+				answer = top_corner( corner.o_, 2, !isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc o_-y should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.s_, 2, isX );
+				answer = top_corner( corner.s_, 2, isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc s_-x should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.s_, 2, !isX );
+				answer = top_corner( corner.s_, 2, !isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc s_-y should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.tt, 2, isX );
+				answer = top_corner( corner.tt, 2, isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc tt-x should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.tt, 2, !isX );
+				answer = top_corner( corner.tt, 2, !isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc tt-y should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.tb, 2, isX );
+				answer = top_corner( corner.tb, 2, isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc tb-x should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.tb, 2, !isX );
+				answer = top_corner( corner.tb, 2, !isX );
 				if ( answer != 1 )
 				{
 					termin.log( "ttc tb-y should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.wr, 2, isX );
+				answer = top_corner( corner.wr, 2, isX );
 				if ( answer != 1 )
 				{
 					termin.log( "ttc wr-x should 1, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.wr, 2, !isX );
+				answer = top_corner( corner.wr, 2, !isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc wr-y should 2, is " + answer );
 					failed++;
 				}
-				answer = bound.top_corner( corner.wl, 2, isX );
+				answer = top_corner( corner.wl, 2, isX );
 				if ( answer != 2 )
 				{
 					termin.log( "ttc wl-x should 2, is " + answer );
 					failed++;
 				}
-				/*top_corner( type, sideCoor, isX )
-			{
-				switch( type )
-				{
-				default:
-				case corner.o_:
-				case corner.s_:
-				case corner.tt:
-				case corner.wl:
-				case corner.nw:
-					return sideCoor;
-				case corner.tb:
-				case corner.sw:
-					return ( !isX ) ? sideCoor - 1 : sideCoor;
-				case corner.wr:
-				case corner.ne:
-					return ( isX ) ? sideCoor - 1 : sideCoor;
-				case corner.se:
-					return sideCoor - 1;
-				}*/
 				return failed;
 			}
 			function redraw( which, cX, cY )
@@ -807,6 +787,8 @@ function klotski()
 				bound.top_corner_dr( bound.tiles[2][4], 2, 4 );
 			}
 			// redraw_affected() BEGINS
+			if ( coorX < 0 && coorY < 0 )
+				return test_top_corner(); // hate to insert this for testing, but otherwise out of scope
 			var prevShape = this.tiles[coorX][coorY];
 			var currShape = this.tiles[this.cursor.x][this.cursor.y];
 			if ( bound.in_goal_area( coorX, coorY ) || bound.in_goal_area( this.cursor.x, this.cursor.y ) )
@@ -985,6 +967,11 @@ function klotski()
 				bound.cursor.y = oldY;
 				return failed;
 			}
+			function ttest_top_corner()
+			{
+				// both negative invokes test_top_corner()
+				return bound.redraw_affected( -1, -1 );
+			}
 			// in_goal_area
 			// swap_block
 			// try_cursor
@@ -999,6 +986,7 @@ function klotski()
 			var failed = test_next_coord();
 			failed += test_apply_cursor_move();
 			failed += test_within_bounds();
+			failed += ttest_top_corner();
 			termin.log( (( failed < 1 ) ? "didn't trip tests" : ( failed + " tests failed" )) );
 		}
 	}
@@ -1065,7 +1053,7 @@ function klotski()
 				return { status: "broken" };
 			}
 			userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
-			termin.log( "ds mm=" + mmoves + " uI=" + userInput ); // + " pmi-" + pastMoveI
+			// termin.log( "ds mm=" + mmoves + " uI=" + userInput ); // + " pmi-" + pastMoveI
 			var outer = userInput.split( '/' );
 			for ( var lis = 0; lis < outer.length; lis++ )
 			{
@@ -1102,7 +1090,7 @@ function klotski()
 				return false; // is square
 			}
 
-			function square_broken( grid, rr, cc ) // FIX
+			function square_broken( grid, rr, cc )
 			{
 				var first = grid[rr][cc];
 				var second, third, fourth = first;
@@ -1110,7 +1098,6 @@ function klotski()
 				var sides_broken = false;
 				var r_lim = grid.length - 1;
 				var c_lim = grid[0].length - 1;
-				//switch ( grid[rr][cc] )
 				if ( first === corner.nw )
 				{
 					sides_broken = ( rr >= r_lim || cc >= c_lim );
@@ -1129,7 +1116,7 @@ function klotski()
 					fourth = grid[ rr ][ cc + 1 ];
 					return ( second != corner.nw || third != corner.sw || fourth != corner.se );
 				}
-				else if ( first === corner.sw ) // 4-tt*tb*tt*tb*s_/__*nw*sw*wl*s_/__*ne*se*wr*s_/tt*tb*tt*tb*s_ 
+				else if ( first === corner.sw )
 				{
 					sides_broken = ( rr < min || cc >= c_lim );
 					if ( sides_broken ) return sides_broken;
@@ -1153,13 +1140,12 @@ function klotski()
 
 			function broken_shape( grid, rr, cc )
 			{
-			//termin.log( corner.str(grid[rr][cc]) );
 				var not_broken = false;
 				switch ( grid[rr][cc] )
 				{
 				case corner.o_:
 				case corner.s_:
-					return not_broken; // FIX, below needs to be flipped: transpose
+					return not_broken;
 				case corner.tt:
 					return ( rr + 1 >= grid[rr].length || grid[rr][ cc + 1 ] != corner.tb );
 				case corner.tb:
@@ -1178,16 +1164,11 @@ function klotski()
 					{
 						var broke = square_broken( grid, rr, cc );
 						checked_square = true; // put a fifth piece and this short circuited it ...
+						if ( broke ) termin.log( "square broken" );
 						return broke;
 					}
 				}
 			}
-			/*var arr = new Array(           CUT when through
-				[p.tt, p.tb, p.tt, p.tb, p.s_],
-				[p.nw, p.sw, p.wl, p.s_, p.o_],
-				[p.ne, p.se, p.wr, p.s_, p.o_],
-				[p.tt, p.tb, p.tt, p.tb, p.s_]
-			);*/
 			// BEGIN parse_grid()
 			var failed = true;
 			// test that the inner lists are of equal length
@@ -1197,9 +1178,9 @@ function klotski()
 				termin.log( " isn't a rectangular input " );
 				return typeCrate;
 			}
-			var checked_square = false; // optimization concession, the others are no good
+			var checked_square = false; // optimization concession, the others are not worthwhile
 			var lim = typeCrate.arra.length;
-			var c_lim = typeCrate.arra[ 0 ].length; // assuming they are the same
+			var c_lim = typeCrate.arra[ 0 ].length;
 			for ( var ro = 0; ro < lim; ro++ )
 			{
 				for ( var col = 0; col < c_lim; col++ )
@@ -1233,6 +1214,7 @@ function klotski()
 		this.w = width;
 		this.h = height;
 
+		// standard, pretty output
 		this.dr_block = function( xC, yC, xSmall, ySmall, color )
 		{
 			var xP = this.c2p( xC );
@@ -1395,15 +1377,12 @@ function klotski()
 
 	function save_game()
 	{
-		//termin.log( ky.str( ky.l) );
-		//termin.log( bound.serialize_tiles() );//serialize_tiles() );
 		document.getElementById("raw").value = bound.serialize_tiles();
 		// alert("sudaved"); // :B
 	}
 
 	function restore_game()
 	{
-		termin.log( "I don't restore correctly yet" );
 		var newGrid = bound.deserialize_tiles( document.getElementById("raw").value );
 		if ( newGrid.status === "okay" )
 		{
@@ -1420,8 +1399,6 @@ function klotski()
 			pix.bad_restore();
 	}
 	// BEGIN klotski()
-	//var sssave = document.getElementById("save"); // because this scope is closed to the outside world for namespace
-	//sssave.addEventListener("onclick", save_game, true);
 	var dom_canvas = document.getElementById( "canvas_here" );
 	var canv = dom_canvas.getContext( "2d" );
 	var isX = true;
