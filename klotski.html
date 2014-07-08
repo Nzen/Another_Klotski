@@ -7,6 +7,7 @@
 	</title>
 	<link rel="stylesheet" type="text/css" href="basic.css">
 	<script type="text/javascript" src="klot.js">
+	<noscript>Canvas ineffective without javascript</noscript>
 	</script>
 </head>
 
@@ -27,12 +28,14 @@
 	</canvas>
 	<h3>Instructions</h3>
 	<p><ul>
-	<li>wasd keys move just the cursor around the board.</li>
-	<li>shift + WASD keys will drag the shape under the cursor, provided there's room.</li>
-	<li>Moving the red block to the diagonally hatched area solves the puzzle.</li>
-	<li>Save game with ~ ; restore game with %. Game state in/out of the box below. (Push key with box deselected.)</li>
+	<li>MOVE CURSOR: wasd</li>
+	<li>MOVE SHAPE: wasd + shift</li>
+	<li>SAVE: ~</li>
+	<li>RESTORE: %</li>
+	<ul><li>- Deselect text box first -</li></ul>
+	<li>WIN: move red square to the marked area.</li>
 	</ul>
-	<form><input type="text" id="raw"> Game bitstream box
+	<form><input type="text" id="raw"> Save/Restore box
     <!-- <input type="button" value="save" id="save"> <input type="text" id="raw"> <input type="button" value="restore" id="restore"> -->
 	</form>
 	</p><p>

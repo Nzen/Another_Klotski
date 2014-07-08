@@ -4,17 +4,13 @@
 // MIT license as described at http://opensource.org/licenses/MIT
 
 /* intended evolution
-	~~draw board & pieces~~
-	~~draw cursor~~
-	~~move cursor with keys~~
-	~~move piece according to rules~~
-	~~check win condition~~
-	~~move cursor with ijkl~~
+	~~draw stuff~~
+	~~move stuff~~
 	tests
-	~~move count~~smarter move count~~
-	~~save / restore game (with anticheating)~~
+	~~count moves~
+	~~save / restore game~~
+	refactor to more prototype usage
 	solver for hints? or just statically solve it & draw hints from that?
-	win sound? piece sounds :? // separate branch?
 	draw blocked direction bar?
 */
 
@@ -156,9 +152,9 @@ function klotski()
 		this.wl = 24; this.wr = 25;
 		this.nw = 36; this.ne = 37; this.sw = 38; this.se = 39;
 	}
-  Cflag.prototype =
-  {
-    str : function( some )
+	Cflag.prototype =
+	{
+		str : function( some )
 		{
 			switch( some )
 			{
@@ -186,11 +182,39 @@ function klotski()
 				return "??";
 			}
 		},
-      is_square : function( type )
+		img : function( some ) // optimized for chrome. can't promise for other browsers
+		{
+			switch( some )
+			{
+			case this.o_:
+				return '\u25E0';
+			case this.s_:
+				return '\u25A9';
+			case this.tt:
+				return '\u25D2';
+			case this.tb:
+				return '\u25D3';
+			case this.wl:
+				return '\u25D1';
+			case this.wr:
+				return '\u25D0';
+			case this.nw:
+				return '\u25E2';
+			case this.ne:
+				return '\u25E3';
+			case this.sw:
+				return '\u25E5';
+			case this.se:
+				return '\u25E4';
+			default:
+				return '\u2BD1';
+			}
+		},
+		is_square : function( type )
 		{
 			return ( type === this.nw || type === this.sw || type === this.se || type === this.ne );
 		}
-  };
+	};
 
 	function Board( width, depth )
 	{
@@ -653,7 +677,7 @@ function klotski()
 		}
 
 		this.in_goal_area = function( cX, cY )
-			{	return ( cX > 0 && cX < 3 ) && ( cY > 2 ); }
+		{	return ( cX > 0 && cX < 3 ) && ( cY > 2 ); }
 
 		this.redraw_affected = function( coorX, coorY )
 		{
@@ -1038,7 +1062,6 @@ function klotski()
 		}
 		function lex_stream( userInput )
 		{
-			termin.log( "outset uI = " + userInput );
 			var pastMoveI = userInput.indexOf( '-' );
 			if ( pastMoveI < 0 )
 			{
@@ -1053,12 +1076,13 @@ function klotski()
 				return { status: "broken" };
 			}
 			userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
-			// termin.log( "ds mm=" + mmoves + " uI=" + userInput ); // + " pmi-" + pastMoveI
-			var outer = userInput.split( '/' );
+			var outer = userInput.split( '/' ); // column separator
 			for ( var lis = 0; lis < outer.length; lis++ )
 			{
-				outer[ lis ] = outer[ lis ].split( '*' );
+				outer[ lis ] = outer[ lis ].split( '*' ); // row-cell separators
 			}
+			termin.log( "\nlexing: moves = " + mmoves + "\n" + outer[0] + '\n' +
+					outer[1] + '\n' + outer[2] + '\n' + outer[3] + '\n'); // yay debugging
 			var failed = false;
 			var p = corner;
 			for ( var ind = 0; ind < outer.length; ind++ )
@@ -1073,7 +1097,7 @@ function klotski()
 					}
 				}
 			}
-			return { arra:outer, status:failed };
+			return { arra:outer, status:failed, moves:mmoves };
 		}
 		function parse_grid( typeCrate )
 		{
@@ -1147,13 +1171,13 @@ function klotski()
 				case corner.s_:
 					return not_broken;
 				case corner.tt:
-					return ( rr + 1 >= grid[rr].length || grid[rr][ cc + 1 ] != corner.tb );
+					return ( cc + 1 >= grid[rr].length || grid[rr][ cc + 1 ] != corner.tb );
 				case corner.tb:
 					return ( cc <= 0 || grid[rr][ cc - 1 ] != corner.tt );
 				case corner.wl:
-					return ( cc + 1 >= grid[rr][cc].length || grid[ rr + 1 ][cc] != corner.wr );
+					return ( rr + 1 >= grid[rr][cc].length || grid[ rr + 1 ][cc] != corner.wr );
 				case corner.wr:
-					return ( cc < 1 || grid[ rr - 1 ][cc] != corner.wl );
+					return ( rr < 1 || grid[ rr - 1 ][cc] != corner.wl );
 				case corner.nw:
 				case corner.ne:
 				case corner.sw:
@@ -1169,6 +1193,21 @@ function klotski()
 					}
 				}
 			}
+			function show_before_checking( grid, c_lim, lim ) // pretty print
+			{
+				termin.log( "parsing" );
+				var ro_str = "";
+				for ( var col = 0; col < c_lim; col++ )
+				{
+					for ( var ro = 0; ro < lim; ro++ )
+					{
+						ro_str += corner.img(typeCrate.arra[ro][col]) + " ";
+					}
+					termin.log( ro_str );
+					ro_str = "";
+				}
+				termin.log( "" );
+			}
 			// BEGIN parse_grid()
 			var failed = true;
 			// test that the inner lists are of equal length
@@ -1181,6 +1220,7 @@ function klotski()
 			var checked_square = false; // optimization concession, the others are not worthwhile
 			var lim = typeCrate.arra.length;
 			var c_lim = typeCrate.arra[ 0 ].length;
+			show_before_checking( typeCrate.arra, c_lim, lim ); // for debugging
 			for ( var ro = 0; ro < lim; ro++ )
 			{
 				for ( var col = 0; col < c_lim; col++ )
@@ -1188,11 +1228,10 @@ function klotski()
 					if ( broken_shape( typeCrate.arra, ro, col ) )
 					{
 						typeCrate.status = true;
-						termin.log( "broken shape @ " + ro + " " + col + " " + corner.str(typeCrate.arra[ro][col]) );
+						termin.log( "broken shape @ " + col + "," + ro + " " + corner.str(typeCrate.arra[ro][col]) );
 						return typeCrate;
 					}
 				}
-				termin.log( "row " + ro + " done" );
 			}
 			typeCrate.status = false;
 			return typeCrate;
@@ -1209,7 +1248,7 @@ function klotski()
 		return typeCrate;
 	}
 
-	function Screen( width, height)
+	function Screen( width, height )
 	{
 		this.w = width;
 		this.h = height;
@@ -1387,11 +1426,13 @@ function klotski()
 		if ( newGrid.status === "okay" )
 		{
 			bound.tiles = newGrid.arra;
-			if ( bound.tiles[1][3] === corner.nw ) // unless I put that in parse
+			if ( bound.tiles[1][3] === corner.nw ) // in goal area
 			{
 				document.getElementById("raw").value = "Nice try cheater.";
+				// another way to cheat is reduce move count. meh :p
 				return;
 			}
+			moves = newGrid.moves;
 			bound.render();
 			termin.log( "game restored" );
 		}
