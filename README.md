@@ -17,5 +17,7 @@ Refactor
 :  I used this project to learn more about javascript's prototype/object model. The incomplete move to prototypes reflects that. So, the project could do with a refactor in that regard.
 Invalid move
 :  It could be cool to show when the cursor is trying to move in a direction it can't. I considered drawing a red bar that fades with a timer. But then I'd have to figure out the edge of the shape it's under in that direction.
+Wiki
+:  I like the idea of literate programming. But, it is only appropriate after the program is done. I could enliterate this, but would probably refactor it before I did.
 Hint system
 :  I think there's one way of solving the puzzle with symmetric variations. So, it is possible to have a solver [calculate the moves](http://www.treskal.com/kalle/klotski.pdf) (that's a pdf link) via a depth-first search. Then it could make a suggestion for the next move or something. What would be really fancy is a segmented arrow showing a four move path or something. Both sound like a lot of work.
