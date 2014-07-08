@@ -6,7 +6,7 @@
 /* intended evolution
 	~~draw stuff~~
 	~~move stuff~~
-	tests
+	tests (3/22)
 	~~count moves~
 	~~save / restore game~~
 	refactor to more prototype usage
@@ -19,7 +19,7 @@ window.addEventListener( "load", pageReady, false );
 var termin = function() {};
 termin.log = function( message )
 { try
-	{ console.log( message ); }
+	{ console.log( message ); } // Opera uses opera.postError( message );
 catch ( exception )
 	{ return; } // IE reputedly has no console.
 }
@@ -228,20 +228,16 @@ function klotski()
 				[p.ne, p.se, p.wr, p.s_, p.o_],
 				[p.tt, p.tb, p.tt, p.tb, p.s_]
 			);
-			/*var grid = new Array( 	// sparse for testing // fix before using
-				[corner.tt, corner.tb, corner.o_, corner.o_, corner.s_],
-				[corner.nw, corner.sw, corner.wl, corner.o_, corner.o_],
-				[corner.ne, corner.se, corner.wr, corner.o_, corner.o_],
-				[corner.o_, corner.o_, p.o_, p.o_, p.s_]
-			);*/
 			return grid;
 		}
 
 		// properties
 		this.cursor = { x:0, y:0 };
 		this.tiles = this.fill_board()
-
-		this.render = function()
+	}
+	Board.prototype = 
+	{
+		render : function()
 		{
 			pix.blank_board();
 			pix.dr_edge();
@@ -250,9 +246,9 @@ function klotski()
 			this.all_blocks_dr();
 			this.check_if_won();
 			pix.show_moves();
-		}
+		},
 
-		this.all_blocks_dr = function()
+		all_blocks_dr : function()
 		{
 			var currT = 0;
 			for ( var xx = 0; xx < this.tiles.length; xx++ )
@@ -264,9 +260,9 @@ function klotski()
 					//this.blockwise_dr( currT, xx, yy ); // for testing
 				}
 			}
-		}
+		},
 
-		this.blockwise_dr = function( type, xx, yy ) // outlines
+		blockwise_dr : function( type, xx, yy ) // outlines
 		{
 			switch( type )
 			{
@@ -294,9 +290,9 @@ function klotski()
 			case corner.se:
 				pix.dr_bk_txt( xx, yy, "red", corner.str(type) );
 			}
-		}
+		},
 
-		this.top_corner_dr = function( type, xx, yy )
+		top_corner_dr : function( type, xx, yy )
 		{
 			var small = true;
 			switch( type )
@@ -321,9 +317,9 @@ function klotski()
 			case corner.nw:
 				pix.dr_block( xx, yy, !small, !small, "red" );
 			}
-		}
+		},
 
-		this.try_cursor = function( arrow )
+		try_cursor : function( arrow )
 		{
 			if ( this.within_bounds( arrow ) )
 			{
@@ -333,9 +329,9 @@ function klotski()
 			}
 			//else
 				//termin.log( " cursor hit edge" ); // or fading red line?
-		}
+		},
 
-		this.try_block = function( dir )
+		try_block : function( dir )
 		{
 			function dir_to_check( thType )
 			{
@@ -575,9 +571,9 @@ function klotski()
 				update_move_counter( dir );
 				this.render(); //_change();
 			}
-		}
+		},
 
-		this.within_bounds = function( arrow )
+		within_bounds : function( arrow )
 		{
 			if ( arrow === ky.l || arrow === ky.L )
 				return this.cursor.x > 0;
@@ -587,9 +583,9 @@ function klotski()
 				return this.cursor.x < this.tiles.length - 1;
 			else if ( arrow === ky.d || arrow === ky.D )
 				return this.cursor.y < this.tiles[0].length - 1;
-		}
+		},
 
-		this.next_coord = function( dir, coor, isX )
+		next_coord : function( dir, coor, isX )
 		{
 			if ( isX )
 			{
@@ -609,9 +605,9 @@ function klotski()
 				else
 					return coor;
 			}
-		}
+		},
 
-		this.same_shape = function( typeA, typeZ )
+		same_shape : function( typeA, typeZ )
 		{
 			switch( typeA )
 			{
@@ -631,9 +627,9 @@ function klotski()
 			default:
 				return false;
 			}
-		}
+		},
 
-		this.apply_cursor_move = function( arrow )
+		apply_cursor_move : function( arrow )
 		{
 			switch( arrow )
 			{
@@ -654,18 +650,18 @@ function klotski()
 				this.cursor.y += 1;
 				break;
 			}
-		}
+		},
 
-		this.swap_block = function( thX, thY, dir )
+		swap_block : function( thX, thY, dir )
 		{
 			var nxX = this.next_coord( dir, thX, isX );
 			var nxY = this.next_coord( dir, thY, !isX );
 			var tempType = this.tiles[thX][thY];
 			this.tiles[thX][thY] = this.tiles[nxX][nxY];
 			this.tiles[nxX][nxY] = tempType;
-		}
+		},
 
-		this.render_change = function( justCursor, oldX, oldY )
+		render_change : function( justCursor, oldX, oldY )
 		{
 			if ( justCursor )
 			{
@@ -674,12 +670,12 @@ function klotski()
 				this.redraw_affected( oldX, oldY );
 			}
 			// else it will be the whole block
-		}
+		},
 
-		this.in_goal_area = function( cX, cY )
-		{	return ( cX > 0 && cX < 3 ) && ( cY > 2 ); }
+		in_goal_area : function( cX, cY )
+		{	return ( cX > 0 && cX < 3 ) && ( cY > 2 ); },
 
-		this.redraw_affected = function( coorX, coorY )
+		redraw_affected : function( coorX, coorY )
 		{
 			function s_type( part )
 			{
@@ -831,15 +827,250 @@ function klotski()
 				redraw( prevShape, coorX, coorY );
 				redraw( currShape, this.cursor.x, this.cursor.y );
 			}
-		}
+		},
 
-		this.check_if_won = function()
+		check_if_won : function()
 		{
 			if ( this.tiles[1][3] === corner.nw ) // assuming no bugs :p
 				pix.winner_banner();
-		}
+		},
 
-		this.test_all = function()
+		serialize_tiles : function()
+		{
+			// current plan, use the printing strings. maybe enum vals later. why not now? delimiters irrelevate padding idea
+			var stream = moves + "-";
+			for ( var ind_x = 0; ind_x < bound.tiles.length; ind_x++ )
+			{
+				for ( var ind_y = 0; ind_y < bound.tiles[0].length; ind_y++ )
+				{
+					stream += corner.str( bound.tiles[ ind_x ][ ind_y ] ) + "*";
+				}
+				stream = stream.substr( 0, stream.length - 1 ); // cut the hanging *
+				stream += "/";
+			}
+			stream = stream.substr( 0, stream.length - 1 ); // cut the hanging '/'
+			return stream;
+		},
+
+		deserialize_tiles : function( userInput )
+		{
+			function de_str( typeStr )
+			{
+				switch( typeStr )
+				{
+				case "__":
+					return corner.o_;
+				case "s_":
+					return corner.s_;
+				case "tt":
+					return corner.tt;
+				case "tb":
+					return corner.tb;
+				case "wl":
+					return corner.wl;
+				case "wr":
+					return corner.wr;
+				case "nw":
+					return corner.nw;
+				case "ne":
+					return corner.ne;
+				case "sw":
+					return corner.sw;
+				case "se":
+					return corner.se;
+				default:
+					return -1;
+				}
+			}
+			function lex_stream( userInput )
+			{
+				var pastMoveI = userInput.indexOf( '-' );
+				if ( pastMoveI < 0 )
+				{
+					termin.log( "illegit: moves not separated from game state" );
+					return { status: "broken" };
+				}
+				var mmoves = userInput.substr( 0, pastMoveI );
+				mmoves = parseInt( mmoves, 10 );
+				if ( mmoves === NaN )
+				{
+					termin.log( "illegit: moves isn't a number" );
+					return { status: "broken" };
+				}
+				userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
+				var outer = userInput.split( '/' ); // column separator
+				for ( var lis = 0; lis < outer.length; lis++ )
+				{
+					outer[ lis ] = outer[ lis ].split( '*' ); // row-cell separators
+				}
+				termin.log( "\nlexing: moves = " + mmoves + "\n" + outer[0] + '\n' +
+						outer[1] + '\n' + outer[2] + '\n' + outer[3] + '\n'); // yay debugging
+				var failed = false;
+				var p = corner;
+				for ( var ind = 0; ind < outer.length; ind++ )
+				{
+					for ( var dni = 0; dni < outer[0].length; dni++ )
+					{
+						outer[ ind ][ dni ] = de_str( outer[ind][dni] );
+						if ( outer[ ind ][ dni ] < 0 )
+						{
+							termin.log( "illegit: negative corner type" );
+							return { status: "broken" };
+						}
+					}
+				}
+				return { arra:outer, status:failed, moves:mmoves };
+			}
+			function parse_grid( typeCrate )
+			{
+				function isnt_rectangular( grid )
+				{
+					var len = grid[0].length;
+					var row_l = 0;
+					for ( var ro = 0; ro < grid.length; ro++ )
+					{
+						row_l = grid[ ro ].length;
+						if ( row_l != len )
+							return true;
+					} // else
+					return false; // is square
+				}
+
+				function square_broken( grid, rr, cc )
+				{
+					var first = grid[rr][cc];
+					var second, third, fourth = first;
+					var min = 1;
+					var sides_broken = false;
+					var r_lim = grid.length - 1;
+					var c_lim = grid[0].length - 1;
+					if ( first === corner.nw )
+					{
+						sides_broken = ( rr >= r_lim || cc >= c_lim );
+						if ( sides_broken ) return sides_broken;
+						second = grid[ rr + 1 ][ cc ];
+						third = grid[ rr ][ cc + 1 ];
+						fourth = grid[ rr + 1 ][ cc + 1 ];
+						return ( second != corner.ne || third != corner.sw || fourth != corner.se );
+					}
+					else if ( first === corner.ne )
+					{
+						sides_broken = ( rr >= r_lim || cc < min );
+						if ( sides_broken ) return sides_broken;
+						second = grid[ rr - 1 ][ cc ];
+						third = grid[ rr - 1 ][ cc + 1 ];
+						fourth = grid[ rr ][ cc + 1 ];
+						return ( second != corner.nw || third != corner.sw || fourth != corner.se );
+					}
+					else if ( first === corner.sw )
+					{
+						sides_broken = ( rr < min || cc >= c_lim );
+						if ( sides_broken ) return sides_broken;
+						second = grid[ rr ][ cc - 1 ];
+						third = grid[ rr - 1 ][ cc - 1 ];
+						fourth = grid[ rr ][ cc + 1 ];
+						return ( second != corner.nw || third != corner.ne || fourth != corner.se );
+					}
+					else if ( first === corner.se )
+					{
+						sides_broken = ( rr < min || cc < min );
+						if ( sides_broken ) return sides_broken;
+						second = grid[ rr - 1 ][ cc - 1 ];
+						third = grid[ rr ][ cc - 1 ];
+						fourth = grid[ rr - 1 ][ cc ];
+						return ( second != corner.nw || third != corner.ne || fourth != corner.sw );
+					}
+					else
+						termin.log("what");
+				}
+
+				function broken_shape( grid, rr, cc )
+				{
+					var not_broken = false;
+					switch ( grid[rr][cc] )
+					{
+					case corner.o_:
+					case corner.s_:
+						return not_broken;
+					case corner.tt:
+						return ( cc + 1 >= grid[rr].length || grid[rr][ cc + 1 ] != corner.tb );
+					case corner.tb:
+						return ( cc <= 0 || grid[rr][ cc - 1 ] != corner.tt );
+					case corner.wl:
+						return ( rr + 1 >= grid[rr][cc].length || grid[ rr + 1 ][cc] != corner.wr );
+					case corner.wr:
+						return ( rr < 1 || grid[ rr - 1 ][cc] != corner.wl );
+					case corner.nw:
+					case corner.ne:
+					case corner.sw:
+					case corner.se:
+						if ( checked_square )
+							return not_broken; // else would have exited
+						else
+						{
+							var broke = square_broken( grid, rr, cc );
+							checked_square = true; // put a fifth piece and this short circuited it ...
+							if ( broke ) termin.log( "square broken" );
+							return broke;
+						}
+					}
+				}
+				function show_before_checking( grid, c_lim, lim ) // pretty print
+				{
+					termin.log( "parsing" );
+					var ro_str = "";
+					for ( var col = 0; col < c_lim; col++ )
+					{
+						for ( var ro = 0; ro < lim; ro++ )
+						{
+							ro_str += corner.img(typeCrate.arra[ro][col]) + " ";
+						}
+						termin.log( ro_str );
+						ro_str = "";
+					}
+					termin.log( "" );
+				}
+				// BEGIN parse_grid()
+				var failed = true;
+				// test that the inner lists are of equal length
+				if ( isnt_rectangular(typeCrate.arra) )
+				{
+					typeCrate.status = true;
+					termin.log( " isn't a rectangular input " );
+					return typeCrate;
+				}
+				var checked_square = false; // optimization concession, the others are not worthwhile
+				var lim = typeCrate.arra.length;
+				var c_lim = typeCrate.arra[ 0 ].length;
+				show_before_checking( typeCrate.arra, c_lim, lim ); // for debugging
+				for ( var ro = 0; ro < lim; ro++ )
+				{
+					for ( var col = 0; col < c_lim; col++ )
+					{
+						if ( broken_shape( typeCrate.arra, ro, col ) )
+						{
+							typeCrate.status = true;
+							termin.log( "broken shape @ " + col + "," + ro + " " + corner.str(typeCrate.arra[ro][col]) );
+							return typeCrate;
+						}
+					}
+				}
+				typeCrate.status = false;
+				return typeCrate;
+			}
+			// BEGIN deserialize_tiles()
+			var typeCrate = lex_stream( userInput );
+			if ( typeCrate.status ) // failed lex
+			{
+				typeCrate.status = ( (typeCrate.status) ? "broken" : "okay" );
+				return typeCrate; // turned bool to str
+			}
+			typeCrate = parse_grid( typeCrate );
+			typeCrate.status = ( (typeCrate.status) ? "broken" : "okay" );
+			return typeCrate;
+		},
+			
+		test_all : function()
 		{
 			function test_apply_cursor_move()
 			{
@@ -1013,248 +1244,17 @@ function klotski()
 			failed += ttest_top_corner();
 			termin.log( (( failed < 1 ) ? "didn't trip tests" : ( failed + " tests failed" )) );
 		}
-	}
-	Board.prototype.serialize_tiles = function()
-	{
-		// current plan, use the printing strings. maybe enum vals later. why not now? delimiters irrelevate padding idea
-		var stream = moves + "-";
-		for ( var ind_x = 0; ind_x < bound.tiles.length; ind_x++ )
-		{
-			for ( var ind_y = 0; ind_y < bound.tiles[0].length; ind_y++ )
-			{
-				stream += corner.str( bound.tiles[ ind_x ][ ind_y ] ) + "*";
-			}
-			stream = stream.substr( 0, stream.length - 1 ); // cut the hanging *
-			stream += "/";
-		}
-		stream = stream.substr( 0, stream.length - 1 ); // cut the hanging '/'
-		return stream;
-	}
-	Board.prototype.deserialize_tiles = function( userInput )
-	{
-		function de_str( typeStr )
-		{
-			switch( typeStr )
-			{
-			case "__":
-				return corner.o_;
-			case "s_":
-				return corner.s_;
-			case "tt":
-				return corner.tt;
-			case "tb":
-				return corner.tb;
-			case "wl":
-				return corner.wl;
-			case "wr":
-				return corner.wr;
-			case "nw":
-				return corner.nw;
-			case "ne":
-				return corner.ne;
-			case "sw":
-				return corner.sw;
-			case "se":
-				return corner.se;
-			default:
-				return -1;
-			}
-		}
-		function lex_stream( userInput )
-		{
-			var pastMoveI = userInput.indexOf( '-' );
-			if ( pastMoveI < 0 )
-			{
-				termin.log( "illegit: moves not separated from game state" );
-				return { status: "broken" };
-			}
-			var mmoves = userInput.substr( 0, pastMoveI );
-			mmoves = parseInt( mmoves, 10 );
-			if ( mmoves === NaN )
-			{
-				termin.log( "illegit: moves isn't a number" );
-				return { status: "broken" };
-			}
-			userInput = userInput.substr( pastMoveI + 1, userInput.length - 2 );
-			var outer = userInput.split( '/' ); // column separator
-			for ( var lis = 0; lis < outer.length; lis++ )
-			{
-				outer[ lis ] = outer[ lis ].split( '*' ); // row-cell separators
-			}
-			termin.log( "\nlexing: moves = " + mmoves + "\n" + outer[0] + '\n' +
-					outer[1] + '\n' + outer[2] + '\n' + outer[3] + '\n'); // yay debugging
-			var failed = false;
-			var p = corner;
-			for ( var ind = 0; ind < outer.length; ind++ )
-			{
-				for ( var dni = 0; dni < outer[0].length; dni++ )
-				{
-					outer[ ind ][ dni ] = de_str( outer[ind][dni] );
-					if ( outer[ ind ][ dni ] < 0 )
-					{
-						termin.log( "illegit: negative corner type" );
-						return { status: "broken" };
-					}
-				}
-			}
-			return { arra:outer, status:failed, moves:mmoves };
-		}
-		function parse_grid( typeCrate )
-		{
-			function isnt_rectangular( grid )
-			{
-				var len = grid[0].length;
-				var row_l = 0;
-				for ( var ro = 0; ro < grid.length; ro++ )
-				{
-					row_l = grid[ ro ].length;
-					if ( row_l != len )
-						return true;
-				} // else
-				return false; // is square
-			}
-
-			function square_broken( grid, rr, cc )
-			{
-				var first = grid[rr][cc];
-				var second, third, fourth = first;
-				var min = 1;
-				var sides_broken = false;
-				var r_lim = grid.length - 1;
-				var c_lim = grid[0].length - 1;
-				if ( first === corner.nw )
-				{
-					sides_broken = ( rr >= r_lim || cc >= c_lim );
-					if ( sides_broken ) return sides_broken;
-					second = grid[ rr + 1 ][ cc ];
-					third = grid[ rr ][ cc + 1 ];
-					fourth = grid[ rr + 1 ][ cc + 1 ];
-					return ( second != corner.ne || third != corner.sw || fourth != corner.se );
-				}
-				else if ( first === corner.ne )
-				{
-					sides_broken = ( rr >= r_lim || cc < min );
-					if ( sides_broken ) return sides_broken;
-					second = grid[ rr - 1 ][ cc ];
-					third = grid[ rr - 1 ][ cc + 1 ];
-					fourth = grid[ rr ][ cc + 1 ];
-					return ( second != corner.nw || third != corner.sw || fourth != corner.se );
-				}
-				else if ( first === corner.sw )
-				{
-					sides_broken = ( rr < min || cc >= c_lim );
-					if ( sides_broken ) return sides_broken;
-					second = grid[ rr ][ cc - 1 ];
-					third = grid[ rr - 1 ][ cc - 1 ];
-					fourth = grid[ rr ][ cc + 1 ];
-					return ( second != corner.nw || third != corner.ne || fourth != corner.se );
-				}
-				else if ( first === corner.se )
-				{
-					sides_broken = ( rr < min || cc < min );
-					if ( sides_broken ) return sides_broken;
-					second = grid[ rr - 1 ][ cc - 1 ];
-					third = grid[ rr ][ cc - 1 ];
-					fourth = grid[ rr - 1 ][ cc ];
-					return ( second != corner.nw || third != corner.ne || fourth != corner.sw );
-				}
-				else
-					termin.log("what");
-			}
-
-			function broken_shape( grid, rr, cc )
-			{
-				var not_broken = false;
-				switch ( grid[rr][cc] )
-				{
-				case corner.o_:
-				case corner.s_:
-					return not_broken;
-				case corner.tt:
-					return ( cc + 1 >= grid[rr].length || grid[rr][ cc + 1 ] != corner.tb );
-				case corner.tb:
-					return ( cc <= 0 || grid[rr][ cc - 1 ] != corner.tt );
-				case corner.wl:
-					return ( rr + 1 >= grid[rr][cc].length || grid[ rr + 1 ][cc] != corner.wr );
-				case corner.wr:
-					return ( rr < 1 || grid[ rr - 1 ][cc] != corner.wl );
-				case corner.nw:
-				case corner.ne:
-				case corner.sw:
-				case corner.se:
-					if ( checked_square )
-						return not_broken; // else would have exited
-					else
-					{
-						var broke = square_broken( grid, rr, cc );
-						checked_square = true; // put a fifth piece and this short circuited it ...
-						if ( broke ) termin.log( "square broken" );
-						return broke;
-					}
-				}
-			}
-			function show_before_checking( grid, c_lim, lim ) // pretty print
-			{
-				termin.log( "parsing" );
-				var ro_str = "";
-				for ( var col = 0; col < c_lim; col++ )
-				{
-					for ( var ro = 0; ro < lim; ro++ )
-					{
-						ro_str += corner.img(typeCrate.arra[ro][col]) + " ";
-					}
-					termin.log( ro_str );
-					ro_str = "";
-				}
-				termin.log( "" );
-			}
-			// BEGIN parse_grid()
-			var failed = true;
-			// test that the inner lists are of equal length
-			if ( isnt_rectangular(typeCrate.arra) )
-			{
-				typeCrate.status = true;
-				termin.log( " isn't a rectangular input " );
-				return typeCrate;
-			}
-			var checked_square = false; // optimization concession, the others are not worthwhile
-			var lim = typeCrate.arra.length;
-			var c_lim = typeCrate.arra[ 0 ].length;
-			show_before_checking( typeCrate.arra, c_lim, lim ); // for debugging
-			for ( var ro = 0; ro < lim; ro++ )
-			{
-				for ( var col = 0; col < c_lim; col++ )
-				{
-					if ( broken_shape( typeCrate.arra, ro, col ) )
-					{
-						typeCrate.status = true;
-						termin.log( "broken shape @ " + col + "," + ro + " " + corner.str(typeCrate.arra[ro][col]) );
-						return typeCrate;
-					}
-				}
-			}
-			typeCrate.status = false;
-			return typeCrate;
-		}
-		// BEGIN deserialize_tiles()
-		var typeCrate = lex_stream( userInput );
-		if ( typeCrate.status ) // failed lex
-		{
-			typeCrate.status = ( (typeCrate.status) ? "broken" : "okay" );
-			return typeCrate; // turned bool to str
-		}
-		typeCrate = parse_grid( typeCrate );
-		typeCrate.status = ( (typeCrate.status) ? "broken" : "okay" );
-		return typeCrate;
-	}
+	};
 
 	function Screen( width, height )
 	{
 		this.w = width;
 		this.h = height;
-
+	}
+	Screen.prototype =
+	{
 		// standard, pretty output
-		this.dr_block = function( xC, yC, xSmall, ySmall, color )
+		dr_block : function( xC, yC, xSmall, ySmall, color )
 		{
 			var xP = this.c2p( xC );
 			var yP = this.c2p( yC );
@@ -1266,10 +1266,10 @@ function klotski()
 			canv.lineWidth = "3";
 			canv.fillStyle = color;
 			canv.fill();
-		}
+		},
 
 		// debugging style output
-		this.dr_bk_txt = function( xC, yC, color, txt )
+		dr_bk_txt : function( xC, yC, color, txt )
 		{
 			var xP = this.c2p( xC );
 			var yP = this.c2p( yC );
@@ -1284,9 +1284,9 @@ function klotski()
 			canv.fillStyle = "gray";
 			canv.font = "bold 13px monospace";
 			canv.fillText( txt, xP + 15, yP + 15 );
-		}
+		},
 
-		this.dr_cursor = function( xC, yC )
+		dr_cursor : function( xC, yC )
 		{
 			var xP = this.cur2p( xC );
 			var yP = this.cur2p( yC );
@@ -1296,9 +1296,9 @@ function klotski()
 			canv.lineWidth = "2";
 			canv.strokeStyle = "cyan";
 			canv.stroke();
-		}
+		},
 
-		this.erase_cursor = function( xC, yC )
+		erase_cursor : function( xC, yC )
 		{
 			var xP = this.cur2p( xC );
 			var yP = this.cur2p( yC );
@@ -1308,27 +1308,27 @@ function klotski()
 			canv.lineWidth = "3";
 			canv.strokeStyle = background;
 			canv.stroke();
-		}
+		},
 
-		this.dr_edge = function()
+		dr_edge : function()
 		{
 			canv.beginPath();
 			canv.rect( 25, 25, this.w, this.h );
 			canv.lineWidth="2";
 			canv.strokeStyle="grey";
 			canv.stroke();
-		}
+		},
 
-		this.blank_board = function()
+		blank_board : function()
 		{
 			canv.beginPath();
 			canv.rect( 25, 25, this.w+70, this.h+30 );
 			//canv.lineWidth = "3";
 			canv.fillStyle =background;
 			canv.fill();
-		}
+		},
 
-		this.dr_goal_area = function()
+		dr_goal_area : function()
 		{
 			function dr_gline( sX_, sY_, eX_, eY_ )
 			{
@@ -1357,32 +1357,32 @@ function klotski()
 				dr_gline( sX, sY, eX, eY );
 				sY -= 10;
 			}
-		}
+		},
 
-		this.winner_banner = function()
+		winner_banner : function()
 		{
 			canv.fillStyle = "paleturquoise";
 			canv.font = "bold 20px monospace";
 			canv.fillText( "winner winner", 10,210);//1, 210 );
 			canv.fillText( "chicken dinner", 75,240);//100, 240 );
-		}
+		},
 
-		this.show_moves = function()
+		show_moves : function()
 		{
 			canv.fillStyle = "silver";
 			canv.font = "bold 15px monospace";
 			canv.fillText( "moves", 255, 260 );
 			canv.fillText( moves, 260, 280 );
-		}
+		},
 
-		this.bad_restore = function()
+		bad_restore : function()
 		{
 			canv.fillStyle = "paleturquoise";
 			canv.font = "bold 20px monospace";
 			canv.fillText( "COULD NOT RESTORE", 40,210);//1, 210 );
-		}
+		},
 
-		this.c2p = function( coord )
+		c2p : function( coord )
 		{
 			switch( coord )
 			{
@@ -1406,13 +1406,13 @@ function klotski()
 			35:191 87:191 139:191 191:191
 			35:243 87:243 139:243 191:243
 			*/
-		}
+		},
 
-		this.cur2p = function( coord )
+		cur2p : function( coord )
 		{
 			return this.c2p( coord ) - 5;
 		}
-	}
+	};
 
 	function save_game()
 	{
