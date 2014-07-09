@@ -15,14 +15,11 @@ This project is pretty much done. There are other toys to build and this is suff
 __Tests__  
 Virtually nothing tests itself or is tested. Partly this stems from a non-functional orientation. Nevertheless, Board - serialize, deserialize, in_goal_area, swap_block, try_cursor, try_block, and all the internal functions still need confirming tests. Screen, mercifully, seems testable by eye.
 
-__Refactor__  
-I used this project to learn more about javascript's prototype/object model. The incomplete move to prototypes reflects that. So, the project could do with a refactor in that regard.
-
 __Invalid move__  
 It could be cool to show when the cursor is trying to move in a direction it can't. I considered drawing a red bar that fades with a timer. But then I'd have to figure out the edge of the shape it's under in that direction.
 
 __Wiki__  
-I like the idea of [literate programming](http://en.literateprograms.org/Special:Contributions/Nzen). But, it is only appropriate after the program is done. I could enliterate this, but would probably refactor it before I did.
+I like the idea of [literate programming](http://en.literateprograms.org/Special:Contributions/Nzen). But, it is only appropriate after the program is done. I could enliterate this, but would probably refactor it again before I did.
 
 __Hint system__  
-I think there's one way of solving the puzzle with symmetric variations. So, it is possible to have a solver [calculate the moves](http://www.treskal.com/kalle/klotski.pdf) (that's a pdf link) via a depth-first search. Then it could make a suggestion for the next move or something. What would be really fancy is a segmented arrow showing a four move path or something. Both sound like a lot of work.
+I think there's one way of solving the puzzle, with symmetric variations. So, it is possible to have a solver [calculate the moves](http://www.treskal.com/kalle/klotski.pdf) (pdf) via a depth-first search. Then it could make a suggestion for the next move or something. What would be really fancy is a segmented arrow showing a four move path or something. Both sound like a lot of work.
