@@ -14,8 +14,8 @@ termin.log = function( message )
 	}
 	catch ( exception )
 	{
-		return;
-	} // IE reputedly has no console.
+		return; // IE reputedly has no console.
+	}
 }
 
 
@@ -36,43 +36,36 @@ function drawTesting( letter )
 
 // input
 
-function KlInput()
-{}
-
-KlInput.prototype =
+function letterPressed( ev )
 {
-
-	isInterestingInput : function( letter )
-	{
-		return isMovementInput( letter ) || isUtilityInput( letter );
-	},
-
-
-	isMovementInput : function ( letter )
+	function isMovementInput( letter )
 	{
 		return "wasdWASD".indexOf( letter ) >= 0;
-	},
+	}
 
 
-	isUtilityInput : function( letter )
+	function isUtilityInput( letter )
 	{
 		return "~%".indexOf( letter ) >= 0;
-	},
-
-
-	letterPressed : function ( ev ) // FIX
-	{
-		var keyPressed = String.fromCharCode( ev.keyCode );
-		if ( interestingInput( keyPressed ) )
-		{
-			drawTesting( keyPressed ); // 4TESTS
-		}
-		else
-		{
-			termin.log( "not interested in "+ keyPressed );
-		}
 	}
-};
+
+
+	function isInterestingInput( letter )
+	{
+		return isMovementInput( letter ) || isUtilityInput( letter );
+	}
+
+
+	var keyPressed = ev.key;//String.fromCharCode( ev.key );
+	if ( isInterestingInput( keyPressed ) )
+	{
+		drawTesting( keyPressed ); // 4TESTS
+	}
+	else
+	{
+		termin.log( "not interested in "+ keyPressed );
+	}
+}
 
 
 // networking
@@ -143,9 +136,7 @@ function pageReady()
 	}
 	else
 	{
-		var listensForKlotski = KlInput();
-		termin.log( listensForKlotski.isInterestingInput( 'f' ) );
-		window.addEventListener( "keypress", listensForKlotski.letterPressed, true );
+		window.addEventListener( "keypress", letterPressed, true );
 		 	// NOTE won't work with IE < 9, but neither will canvas
 		// channel = new WebSocket( "ws://localhost:9998" );
 	}

@@ -9,9 +9,6 @@ Released under [MIT license](http://opensource.org/licenses/MIT). You know, beca
 
 ### Future directions
 
-__Indefinite delay__  
-This project is pretty much done. There are other toys to build and this is sufficiently functional. Perhaps give me an opportunity to learn github's pull request functionality? : P
-
 __Tests__  
 Virtually nothing tests itself or is tested. Partly this stems from a non-functional orientation. Nevertheless, Board - serialize, deserialize, in_goal_area, swap_block, try_cursor, try_block, and all the internal functions still need confirming tests. Screen, mercifully, seems testable by eye.
 

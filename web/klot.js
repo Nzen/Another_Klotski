@@ -218,7 +218,7 @@ function klotski()
 
 	function Board( width, depth )
 	{
-		// interpretation order demands this be first :\
+		// interpretation order demands this be first :\ 
 		this.fill_board = function()
 		{
 			var p = new Cflag();
