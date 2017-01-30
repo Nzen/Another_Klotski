@@ -1303,6 +1303,7 @@ function klotski()
 			var xP = this.cur2p( xC );
 			var yP = this.cur2p( yC );
 			var defaultSide = 49;
+			pix.dr_edge();
 			canv.beginPath();
 			canv.rect( xP, yP, defaultSide, defaultSide ); // x y
 			canv.lineWidth = "3";

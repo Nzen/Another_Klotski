@@ -19,19 +19,7 @@ termin.log = function( message )
 }
 
 
-// drawing
-
-
-	const background = "#0A0A29";
-
-function drawTesting( letter )
-{
-	const dom_canvas = document.getElementById( "canvas_here" );
-	const canv = dom_canvas.getContext( "2d" );
-	canv.fillStyle = "gray";
-	canv.font = "bold 25px monospace";
-	canv.fillText( letter, 30, 30 );
-}
+// drawing is in nzKlotski.js
 
 
 // input
@@ -60,6 +48,21 @@ function letterPressed( ev )
 	if ( isInterestingInput( keyPressed ) )
 	{
 		drawTesting( keyPressed ); // 4TESTS
+		const small = true;
+		if ( isUtilityInput( keyPressed ) )
+		{
+			var p = new Cflag();
+			termin.log(p.tt);
+			drawBoard( { "moves": 2,
+				"cursor": { "xC": 1, "yC": 0 },
+				"tiles": new Array( 	// transpose permits tiles[x][y]
+					[p.tt, p.tb, p.tt, p.tb, p.s_],
+					[p.nw, p.sw, p.wl, p.s_, p.o_],
+					[p.ne, p.se, p.wr, p.s_, p.o_],
+					[p.tt, p.tb, p.tt, p.tb, p.s_]
+				)
+			} );
+		}
 	}
 	else
 	{
@@ -77,7 +80,7 @@ function letterPressed( ev )
 
 		channel.onopen = function coo()
 		{
-			channel.send( JSON.stringify(getInput()) );
+			channel.send( JSON.stringify( { 'f':'ofx' } ) );
 		};
 		channel.onclose = function coc()
 		{
