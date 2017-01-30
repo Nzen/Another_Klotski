@@ -138,7 +138,9 @@ function drawBoard( boardState )
 	}
 
 	function in_goal_area( cX, cY )
-	{	return ( cX > 0 && cX < 3 ) && ( cY > 2 ); }
+	{	
+		return ( cX > 0 && cX < 3 ) && ( cY > 2 );
+	}
 
 	function dr_cursor( xC, yC )
 	{
@@ -165,67 +167,67 @@ function drawBoard( boardState )
 		canv.stroke();
 	}
 
-		function dr_block( xC, yC, xSmall, ySmall, color )
-		{
-			var xP = c2p( xC );
-			var yP = c2p( yC );
-			var defaultSide = 40;
-			var xL = ( xSmall ) ? defaultSide : defaultSide * 2 + 11;
-			var yL = ( ySmall ) ? defaultSide : defaultSide * 2 + 11;
-			canv.beginPath();
-			canv.rect( xP, yP, xL, yL ); // x y
-			canv.lineWidth = "3";
-			canv.fillStyle = color;
-			canv.fill();
-		}
+	function dr_block( xC, yC, xSmall, ySmall, color )
+	{
+		var xP = c2p( xC );
+		var yP = c2p( yC );
+		var defaultSide = 40;
+		var xL = ( xSmall ) ? defaultSide : defaultSide * 2 + 11;
+		var yL = ( ySmall ) ? defaultSide : defaultSide * 2 + 11;
+		canv.beginPath();
+		canv.rect( xP, yP, xL, yL ); // x y
+		canv.lineWidth = "3";
+		canv.fillStyle = color;
+		canv.fill();
+	}
 
-		// debugging style output
-		function dr_bk_txt( xC, yC, color, txt )
-		{
-			var xP = c2p( xC );
-			var yP = c2p( yC );
-			var xL = 40, yL = xL;
-			canv.beginPath();
-			canv.rect( xP, yP, xL, yL ); // x y
-			canv.lineWidth = "3";
-			canv.strokeStyle = color;
-			canv.stroke();
-			//
-			canv.beginPath();
-			canv.fillStyle = "gray";
-			canv.font = "bold 13px monospace";
-			canv.fillText( txt, xP + 15, yP + 15 );
-		}
+	// debugging style output
+	function dr_bk_txt( xC, yC, color, txt )
+	{
+		var xP = c2p( xC );
+		var yP = c2p( yC );
+		var xL = 40, yL = xL;
+		canv.beginPath();
+		canv.rect( xP, yP, xL, yL ); // x y
+		canv.lineWidth = "3";
+		canv.strokeStyle = color;
+		canv.stroke();
+		//
+		canv.beginPath();
+		canv.fillStyle = "gray";
+		canv.font = "bold 13px monospace";
+		canv.fillText( txt, xP + 15, yP + 15 );
+	}
 
-		function blockwise_dr( type, xx, yy ) // outlines
+	function blockwise_dr( type, xx, yy ) // outlines
+	{
+		switch( type )
 		{
-			switch( type )
-			{
-			default:
-			case corner.o_:
-				if ( in_goal_area( xx, yy ) )
-					return; // drawn in goal_area() already
-				else
-					dr_bk_txt( xx, yy, background, corner.str(type) );
-				break;
-			case corner.s_:
-				dr_bk_txt( xx, yy, "purple", corner.str(type) );
-				break;
-			case corner.tt:
-			case corner.tb:
-				dr_bk_txt( xx, yy, "green", corner.str(type) );
-				break;
-			case corner.wl:
-			case corner.wr:
-				dr_bk_txt( xx, yy, "blue", corner.str(type) );
-				break;
-			case corner.nw:
-			case corner.ne:
-			case corner.sw:
-			case corner.se:
-				dr_bk_txt( xx, yy, "red", corner.str(type) );
-			}
+		default:
+		case corner.o_:
+			if ( in_goal_area( xx, yy ) )
+				return; // drawn in goal_area() already
+			else
+				dr_bk_txt( xx, yy, background, corner.str(type) );
+			break;
+		case corner.s_:
+			dr_bk_txt( xx, yy, "purple", corner.str(type) );
+			break;
+		case corner.tt:
+		case corner.tb:
+			dr_bk_txt( xx, yy, "green", corner.str(type) );
+			break;
+		case corner.wl:
+		case corner.wr:
+			dr_bk_txt( xx, yy, "blue", corner.str(type) );
+			break;
+		case corner.nw:
+		case corner.ne:
+		case corner.sw:
+		case corner.se:
+			dr_bk_txt( xx, yy, "red", corner.str(type) );
 		}
+	}
 
 	function top_corner_dr( type, xx, yy )
 	{
@@ -274,6 +276,14 @@ function drawBoard( boardState )
 	dr_goal_area();
 	dr_cursor( boardState.cursor.xC, boardState.cursor.yC );
 	all_blocks_dr( boardState.tiles );
+	if ( boardState.restoreError )
+	{
+		bad_restore();
+	}
+	else if ( boardState.haveWon )
+	{
+		winner_banner();
+	}
 }
 
 

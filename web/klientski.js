@@ -52,9 +52,10 @@ function letterPressed( ev )
 		if ( isUtilityInput( keyPressed ) )
 		{
 			var p = new Cflag();
-			termin.log(p.tt);
 			drawBoard( { "moves": 2,
 				"cursor": { "xC": 1, "yC": 0 },
+				"restoreError": false,
+				"haveWon": false,
 				"tiles": new Array( 	// transpose permits tiles[x][y]
 					[p.tt, p.tb, p.tt, p.tb, p.s_],
 					[p.nw, p.sw, p.wl, p.s_, p.o_],
