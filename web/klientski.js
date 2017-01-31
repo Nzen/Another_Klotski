@@ -64,6 +64,11 @@ function letterPressed( ev )
 				)
 			} );
 		}
+		else
+		{
+			channel.send( JSON.stringify( { 'requestType' : 'echo',
+				'buttonVal': '', 'moveVal': keyPressed } ) );
+		}
 	}
 	else
 	{
@@ -73,26 +78,6 @@ function letterPressed( ev )
 
 
 // networking
-
-
-	function changeName()
-	{
-		var channel = new WebSocket( "ws://localhost:9998" );
-
-		channel.onopen = function coo()
-		{
-			channel.send( JSON.stringify( { 'f':'ofx' } ) );
-		};
-		channel.onclose = function coc()
-		{
-			termin.log( "glad that's over" );
-		};
-		channel.onmessage = function com( msg )
-		{
-			applyResponse( msg.data );
-			channel.close();
-		};
-	}
 /*
  requests
 move cursor
@@ -118,7 +103,7 @@ error
 
 function canvasSupported() // doesn't catch all mobile exceptions
 {
-	return ! window.CanvasRenderingContext2D;
+	return window.CanvasRenderingContext2D;
 }
 
 
@@ -128,21 +113,42 @@ function socketSupported()
 }
 
 
-// var channel;
+var channel;
+
+function prepSocket()
+{
+	channel = new WebSocket( "ws://localhost:9998" );
+	channel.onopen = function coo()
+	{
+		termin.log( 'server says it\'s listening, but for how long?' );
+	};
+	channel.onclose = function coc()
+	{
+		termin.log( 'glad that\'s over' );
+	};
+	channel.onmessage = function com( msg )
+	{
+		termin.log( msg );
+		var response = JSON.parse( msg.data );
+		termin.log( response );
+	};
+}
+
 
 
 function pageReady()
 {
-	if ( ! ( canvasSupported() || socketSupported() ) )
+	if ( ! ( canvasSupported() && socketSupported() ) )
 	{
-		termin.log( "prerequisites unsupported, sorree" );
+		termin.log( "prerequisites unsupported, sorree"
+				+"\ncanv "+ canvasSupported() +" * sock "+ socketSupported() );
 		return;
 	}
 	else
 	{
 		window.addEventListener( "keypress", letterPressed, true );
 		 	// NOTE won't work with IE < 9, but neither will canvas
-		// channel = new WebSocket( "ws://localhost:9998" );
+		prepSocket();
 	}
 }
 

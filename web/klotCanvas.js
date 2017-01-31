@@ -27,8 +27,8 @@ function Cflag()
 
 function drawBoard( boardState )
 {
-	const w = 218
-	const h = 270;
+	const boardWidth = 218
+	const boardHeight = 270;
 	const background = "#0A0A29";
 	const corner = new Cflag();
 	const dom_canvas = document.getElementById( "canvas_here" );
@@ -68,16 +68,16 @@ function drawBoard( boardState )
 	function blank_board()
 	{
 		canv.beginPath();
-		canv.rect( 25, 25, w +70, h +30 );
+		canv.rect( 25, 25, boardWidth +70, boardHeight +30 );
 		//canv.lineWidth = "3";
-		canv.fillStyle =background;
+		canv.fillStyle = background;
 		canv.fill();
 	}
 
 	function dr_edge()
 	{
 		canv.beginPath();
-		canv.rect( 25, 25, w, h );
+		canv.rect( 25, 25, boardWidth, boardHeight );
 		canv.lineWidth="2";
 		canv.strokeStyle="grey";
 		canv.stroke();

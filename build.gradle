@@ -1,0 +1,39 @@
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+version = '0.5'
+
+repositories
+{
+	flatDir
+	{
+		dirs 'libs'
+	}
+}
+
+dependencies
+{
+	compile 'com.google.code.gson:gson:2.8.0',
+		'org.java_websocket:Java-WebSocket-1.3.0:1.3.0'
+}
+
+jar
+{
+	manifest
+	{
+		attributes 'Main-Class': 'ws.nzen.webIo.RunsKlotski',
+			'Class-Path': configurations.runtime.collect { it.getName() }.join( ' ' )
+	}
+}
+
+uploadArchives
+{
+	repositories
+	{
+		flatDir
+		{
+			dirs 'dist'
+		}
+	}
+}
