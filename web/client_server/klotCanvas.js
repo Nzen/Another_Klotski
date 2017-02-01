@@ -25,14 +25,28 @@ function Cflag()
 }
 
 
+	/*
+	var p = new Cflag();
+	drawBoard( { "moves": 2,
+		"cursor": { "xC": 1, "yC": 0 },
+		"restoreError": false,
+		"haveWon": false,
+		"tiles": new Array( 	// transpose permits tiles[x][y]
+			[p.tt, p.tb, p.tt, p.tb, p.s_],
+			[p.nw, p.sw, p.wl, p.s_, p.o_],
+			[p.ne, p.se, p.wr, p.s_, p.o_],
+			[p.tt, p.tb, p.tt, p.tb, p.s_]
+		)
+	} );
+*/
 function drawBoard( boardState )
 {
 	const boardWidth = 218
 	const boardHeight = 270;
 	const background = "#0A0A29";
 	const corner = new Cflag();
-	const dom_canvas = document.getElementById( "canvas_here" );
-	const canv = dom_canvas.getContext( "2d" );
+	const domCanvas = document.getElementById( "canvas_here" );
+	const canv = domCanvas.getContext( "2d" );
 
 	function c2p( coord )
 	{
