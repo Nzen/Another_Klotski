@@ -1,6 +1,7 @@
-/**
- * 
- */
+
+/* copyright Nicholas Prado
+released uncer terms of ../../../../../../LICENSE (x11 style) */
+
 package ws.nzen.webIo;
 
 import java.net.InetSocketAddress;
@@ -14,7 +15,7 @@ import com.google.gson.Gson;
 
 /**
  * @author nzen
- *
+ * Listens for interpreted user input and provides updated board
  */
 public class RunsKlotski extends WebSocketServer
 {
