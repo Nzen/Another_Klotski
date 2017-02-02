@@ -19,7 +19,7 @@ termin.log = function( message )
 }
 
 
-// drawing is in nzKlotski.js
+// drawing is in klotCanvas.js
 
 
 // input
@@ -31,49 +31,33 @@ function letterPressed( ev )
 		return "wasdWASD".indexOf( letter ) >= 0;
 	}
 
-
 	function isUtilityInput( letter )
 	{
 		return "~%".indexOf( letter ) >= 0;
 	}
-
 
 	function isInterestingInput( letter )
 	{
 		return isMovementInput( letter ) || isUtilityInput( letter );
 	}
 
-
-	var keyPressed = ev.key;//String.fromCharCode( ev.key );
+	var keyPressed = ev.key; // IMPROVE handle arrow keys too, eventually
 	if ( isInterestingInput( keyPressed ) )
 	{
-		drawTesting( keyPressed ); // 4TESTS
-		const small = true;
-		if ( isUtilityInput( keyPressed ) )
-		{
-			var p = new Cflag();
-			drawBoard( { "moves": 2,
-				"cursor": { "xC": 1, "yC": 0 },
-				"restoreError": false,
-				"haveWon": false,
-				"tiles": new Array( 	// transpose permits tiles[x][y]
-					[p.tt, p.tb, p.tt, p.tb, p.s_],
-					[p.nw, p.sw, p.wl, p.s_, p.o_],
-					[p.ne, p.se, p.wr, p.s_, p.o_],
-					[p.tt, p.tb, p.tt, p.tb, p.s_]
-				)
-			} );
-		}
-		else
-		{
-			channel.send( JSON.stringify( { 'requestType' : 'echo',
-				'buttonVal': '', 'moveVal': keyPressed } ) );
-		}
+		channel.send( JSON.stringify( { 'requestType' : 'key',
+			'buttonVal': '', 'moveVal': keyPressed } ) );
 	}
 	else
 	{
 		termin.log( "not interested in "+ keyPressed );
 	}
+}
+
+
+function clickedSaveStateBtn( which )
+{
+	channel.send( JSON.stringify( { 'requestType' : 'button',
+			'buttonVal': which, 'moveVal': '' } ) );
 }
 
 
@@ -130,7 +114,14 @@ function prepSocket()
 	{
 		termin.log( msg );
 		var response = JSON.parse( msg.data );
-		termin.log( response );
+		if ( response.replyType == 'board' )
+		{
+			drawBoard( response.boardState );
+		}
+		else
+		{
+			termin.log( response ); // FIX to the canvas, if appropriate
+		}
 	};
 }
 

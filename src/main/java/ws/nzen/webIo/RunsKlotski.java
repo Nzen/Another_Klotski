@@ -63,7 +63,7 @@ public class RunsKlotski extends WebSocketServer
 	public void onMessage( WebSocket conn, String message )
 	{
 		System.out.println( "received "+ message +" "+ conn.getLocalSocketAddress() );
-		conn.send( genMessagteReply( message ) );
+		conn.send( genMessageReply( message ) );
 	}
 
 
@@ -81,10 +81,30 @@ public class RunsKlotski extends WebSocketServer
 	}
 
 
-	private String genMessagteReply( String json )
+	private String genMessageReply( String json )
 	{
 		KlotRequest msgInAmber = jsParser.fromJson( json, KlotRequest.class );
 		String reply = "";
+		switch ( msgInAmber.getRequestType() )
+		{
+			case "button" :
+			{
+				break;
+			}
+			case "key" :
+			{
+				break;
+			}
+			case "echo" :
+			default :
+			{
+				break;
+			}
+		}
+		if (.equals(  ) )
+		{
+			reply = echoJsonMsg( json );
+		}
 		if ( msgInAmber.getRequestType().equals( "echo" ) )
 		{
 			reply = echoJsonMsg( json );

@@ -1,7 +1,7 @@
 package ws.nzen.webIo;
 
 // since gson insists on me knowing the class
-public class KlotRequest
+public class KlientskiRequest
 {
 	private String requestType;
 	private String buttonVal;
