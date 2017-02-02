@@ -1,50 +1,76 @@
+
+/* copyright Nicholas Prado
+released under terms of ../../../../../../LICENSE (x11 style) */
+
 package ws.nzen.webIo;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 public class KlotBoardReply
 {
 	private int moves;
-	private Map<String, Integer> cursor;
+	private Map<String, Integer> cursor = new TreeMap<>();
 	private boolean restoreError;
 	private boolean haveWon;
 	private int[][] tiles;
 
-	public int getMoves() {
+	public int getMoves()
+	{
 		return moves;
 	}
 
-	public void setMoves( int moves ) {
+	public void setMoves( int moves )
+	{
 		this.moves = moves;
+	}
+
+
+	// caller handles validity
+	public void setCursorCoordinates( int xx, int yy )
+	{
+		cursor.put( "xC", xx );
+		cursor.put( "yC", yy );
 	}
 
 	public Map<String, Integer> getCursor() {
 		return cursor;
 	}
 
-	public void setCursor( Map<String, Integer> cursor ) {
+	public void setCursor( Map<String, Integer> cursor )
+	{
 		this.cursor = cursor;
 	}
+
 
 	public boolean isRestoreError() {
 		return restoreError;
 	}
 
-	public void setRestoreError( boolean restoreError ) {
+
+	public void setRestoreError( boolean restoreError )
+	{
 		this.restoreError = restoreError;
 	}
+
 
 	public boolean isHaveWon() {
 		return haveWon;
 	}
 
-	public void setHaveWon( boolean haveWon ) {
+
+	public void setHaveWon( boolean haveWon )
+	{
 		this.haveWon = haveWon;
 	}
+
 
 	public int[][] getTiles() {
 		return tiles;
 	}
 
-	public void setTiles( int[][] tiles ) {
+	public void setTiles( int[][] tiles )
+	{
 		this.tiles = tiles;
 	}
 }

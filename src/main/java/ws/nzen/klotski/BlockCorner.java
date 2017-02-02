@@ -1,6 +1,6 @@
 
 /* copyright Nicholas Prado
-released uncer terms of ../../../../../../LICENSE (x11 style) */
+released under terms of ../../../../../../LICENSE (x11 style) */
 
 package ws.nzen.klotski;
 

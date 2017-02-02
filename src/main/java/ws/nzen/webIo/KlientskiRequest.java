@@ -1,3 +1,7 @@
+
+/* copyright Nicholas Prado
+released under terms of ../../../../../../LICENSE (x11 style) */
+
 package ws.nzen.webIo;
 
 // since gson insists on me knowing the class

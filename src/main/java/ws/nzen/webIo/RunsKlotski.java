@@ -1,6 +1,6 @@
 
 /* copyright Nicholas Prado
-released uncer terms of ../../../../../../LICENSE (x11 style) */
+released under terms of ../../../../../../LICENSE (x11 style) */
 
 package ws.nzen.webIo;
 
@@ -83,7 +83,7 @@ public class RunsKlotski extends WebSocketServer
 
 	private String genMessageReply( String json )
 	{
-		KlotRequest msgInAmber = jsParser.fromJson( json, KlotRequest.class );
+		KlientskiRequest msgInAmber = jsParser.fromJson( json, KlientskiRequest.class );
 		String reply = "";
 		switch ( msgInAmber.getRequestType() )
 		{
@@ -101,7 +101,7 @@ public class RunsKlotski extends WebSocketServer
 				break;
 			}
 		}
-		if (.equals(  ) )
+		if ( msgInAmber.getRequestType().equals( "echo" ) )
 		{
 			reply = echoJsonMsg( json );
 		}
@@ -109,7 +109,7 @@ public class RunsKlotski extends WebSocketServer
 		{
 			reply = echoJsonMsg( json );
 		}
-		return json;
+		return reply;
 	}
 
 
