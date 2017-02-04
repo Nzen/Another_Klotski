@@ -4,16 +4,21 @@ released under terms of ../../../../../../LICENSE (x11 style) */
 
 package ws.nzen.webIo;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 public class KlotBoardReply
 {
-	private int moves;
-	private Map<String, Integer> cursor = new TreeMap<>();
-	private boolean restoreError;
-	private boolean haveWon;
+	private String replyType = "board";
+	private int moves = 0;
+	private CursorCoordinates cursor = new CursorCoordinates();
+	private boolean restoreError = false;
+	private boolean haveWon = false;
 	private int[][] tiles;
+
+
+	public String getReplyType()
+	{
+		return replyType;
+	}
+
 
 	public int getMoves()
 	{
@@ -29,15 +34,15 @@ public class KlotBoardReply
 	// caller handles validity
 	public void setCursorCoordinates( int xx, int yy )
 	{
-		cursor.put( "xC", xx );
-		cursor.put( "yC", yy );
+		cursor.xC = xx;
+		cursor.yC = yy;
 	}
 
-	public Map<String, Integer> getCursor() {
+	public CursorCoordinates getCursor() {
 		return cursor;
 	}
 
-	public void setCursor( Map<String, Integer> cursor )
+	public void setCursor( CursorCoordinates cursor )
 	{
 		this.cursor = cursor;
 	}
@@ -73,6 +78,14 @@ public class KlotBoardReply
 	{
 		this.tiles = tiles;
 	}
+
+
+	public static class CursorCoordinates
+	{
+		int xC;
+		int yC;
+	}
+
 }
 	/*
 	var p = new Cflag();

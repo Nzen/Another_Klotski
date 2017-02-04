@@ -116,7 +116,8 @@ function prepSocket()
 		var response = JSON.parse( msg.data );
 		if ( response.replyType == 'board' )
 		{
-			drawBoard( response.boardState );
+			termin.log( response );
+			drawBoard( response );
 		}
 		else
 		{

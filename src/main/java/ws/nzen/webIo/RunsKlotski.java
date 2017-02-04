@@ -13,6 +13,8 @@ import org.java_websocket.server.WebSocketServer;
 
 import com.google.gson.Gson;
 
+import ws.nzen.klotski.BlockCorner;
+
 /**
  * @author nzen
  * Listens for interpreted user input and provides updated board
@@ -83,7 +85,8 @@ public class RunsKlotski extends WebSocketServer
 
 	private String genMessageReply( String json )
 	{
-		KlientskiRequest msgInAmber = jsParser.fromJson( json, KlientskiRequest.class );
+		KlientskiRequest msgInAmber = jsParser.fromJson(
+				json, KlientskiRequest.class );
 		String reply = "";
 		switch ( msgInAmber.getRequestType() )
 		{
@@ -91,25 +94,80 @@ public class RunsKlotski extends WebSocketServer
 			{
 				break;
 			}
-			case "key" :
+			case "key" : // ASK key or move? will I still support ~%
 			{
+				reply = someBoard();
 				break;
 			}
 			case "echo" :
 			default :
 			{
+				reply = echoJsonMsg( json );
 				break;
 			}
 		}
-		if ( msgInAmber.getRequestType().equals( "echo" ) )
-		{
-			reply = echoJsonMsg( json );
-		}
-		if ( msgInAmber.getRequestType().equals( "echo" ) )
-		{
-			reply = echoJsonMsg( json );
-		}
 		return reply;
+	}
+
+
+	private String someBoard()
+	{
+		KlotBoardReply randomBoard = new KlotBoardReply();
+		randomBoard.setCursorCoordinates( 1, 4 );
+		randomBoard.setHaveWon( false );
+		randomBoard.setMoves( 34 );
+		randomBoard.setRestoreError( false );
+		randomBoard.setTiles( new int[][]
+			{
+				new int[]
+				{
+					BlockCorner.tallTop.getJsVal(),
+					BlockCorner.tallBottom.getJsVal(), 
+					BlockCorner.tallTop.getJsVal(), 
+					BlockCorner.tallBottom.getJsVal(), 
+					BlockCorner.single.getJsVal(), 
+				},
+				new int[]
+				{
+					BlockCorner.bigTopLeft.getJsVal(),
+					BlockCorner.bigBottomLeft.getJsVal(), 
+					BlockCorner.wideLeft.getJsVal(), 
+					BlockCorner.single.getJsVal(), 
+					BlockCorner.empty.getJsVal(), 
+				},
+				new int[]
+				{
+					BlockCorner.bigTopRight.getJsVal(),
+					BlockCorner.bigBottomRight.getJsVal(), 
+					BlockCorner.wideRight.getJsVal(), 
+					BlockCorner.single.getJsVal(), 
+					BlockCorner.empty.getJsVal(), 
+				},
+				new int[]
+				{
+					BlockCorner.tallTop.getJsVal(),
+					BlockCorner.tallBottom.getJsVal(), 
+					BlockCorner.tallTop.getJsVal(), 
+					BlockCorner.tallBottom.getJsVal(), 
+					BlockCorner.single.getJsVal(), 
+				}
+			}
+		);
+		return jsParser.toJson( randomBoard, KlotBoardReply.class );
+		/*
+		var p = new Cflag();
+		drawBoard( { "moves": 2,
+			"cursor": { "xC": 1, "yC": 0 },
+			"restoreError": false,
+			"haveWon": false,
+			"tiles": new Array( 	// transpose permits tiles[x][y]
+				[p.tt, p.tb, p.tt, p.tb, p.s_],
+				[p.nw, p.sw, p.wl, p.s_, p.o_],
+				[p.ne, p.se, p.wr, p.s_, p.o_],
+				[p.tt, p.tb, p.tt, p.tb, p.s_]
+			)
+		} );
+	*/
 	}
 
 
@@ -117,21 +175,5 @@ public class RunsKlotski extends WebSocketServer
 	{
 		return json;
 	}
-
-
-	/*
-	var p = new Cflag();
-	drawBoard( { "moves": 2,
-		"cursor": { "xC": 1, "yC": 0 },
-		"restoreError": false,
-		"haveWon": false,
-		"tiles": new Array( 	// transpose permits tiles[x][y]
-			[p.tt, p.tb, p.tt, p.tb, p.s_],
-			[p.nw, p.sw, p.wl, p.s_, p.o_],
-			[p.ne, p.se, p.wr, p.s_, p.o_],
-			[p.tt, p.tb, p.tt, p.tb, p.s_]
-		)
-	} );
-*/
 
 }

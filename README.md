@@ -7,6 +7,8 @@ Solve the klotski (sliding block) puzzle by moving the red block to the marked a
 
 Released under [MIT license](http://opensource.org/licenses/MIT). You know, because I [didn't invent](http://en.wikipedia.org/wiki/Klotski) klotski.
 
+Status : active (2017 Feb)
+
 ### Future directions
 
 __Tests__  
