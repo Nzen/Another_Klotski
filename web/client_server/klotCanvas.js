@@ -1,7 +1,7 @@
 
 /*
 &copy; Nicholas Prado ; released under terms of ../LICENSE
-Draws a Klotski game to the canvas
+Draws a Klotski game to a 218 x 270 pixel canvas
 */
 
 

@@ -1,17 +1,13 @@
 
- - 170201,2 todo -
+ - 170204 todo -
 
-master
+-- master --
 
-runsklot sends a random board json response, tries to restore on init, dispaches button and others
+board exists, board handles valid movement, creates klotboardresponse
 
-board exists, handles valid movement, creates klotboardresponse
+game restoreer exists, server tries to restore on open connection, serializes board and state, deserializes
 
-game restoreer exists, serializes board and state, deserializes
-
-klientski handles arrow key input (perhaps split out)
-
-javax-websockets
+-- javax-websockets --
 
 get all the sinning tyrus jars, recopy the annotated server thing and check javadoc for programmatic server. this seems too heavy for my use case.
 

@@ -1,7 +1,7 @@
 
 /*
 &copy; Nicholas Prado ; released under terms of ../LICENSE
-Graphics client that draws a Klotski game
+Network client that mediates a Klotski game
 */
 
 
@@ -24,32 +24,15 @@ termin.log = function( message )
 
 // input
 
-function letterPressed( ev )
+
+function keyboardInput( ev )
 {
-	function isMovementInput( letter )
-	{
-		return "wasdWASD".indexOf( letter ) >= 0;
-	}
-
-	function isUtilityInput( letter )
-	{
-		return "~%".indexOf( letter ) >= 0;
-	}
-
-	function isInterestingInput( letter )
-	{
-		return isMovementInput( letter ) || isUtilityInput( letter );
-	}
-
-	var keyPressed = ev.key; // IMPROVE handle arrow keys too, eventually
-	if ( isInterestingInput( keyPressed ) )
+	var firstPass = letterPressed( ev );
+	if ( firstPass != null )
 	{
 		channel.send( JSON.stringify( { 'requestType' : 'key',
-			'buttonVal': '', 'moveVal': keyPressed } ) );
-	}
-	else
-	{
-		termin.log( "not interested in "+ keyPressed );
+			'buttonVal': '', 'moveVal': firstPass } )
+		);
 	}
 }
 
@@ -63,22 +46,8 @@ function clickedSaveStateBtn( which )
 
 // networking
 /*
- requests
-move cursor
-drag shape
-save
-restore
-restart
-have I won?
-undo
-hint
-
  replies
 board (as rows,2d array, string ?)
-cursor location
-(bad move line ?)
-move count
-error
 (hint lines)
 */
 
@@ -138,7 +107,7 @@ function pageReady()
 	}
 	else
 	{
-		window.addEventListener( "keypress", letterPressed, true );
+		window.addEventListener( "keydown", letterPressed, true );
 		 	// NOTE won't work with IE < 9, but neither will canvas
 		prepSocket();
 	}
