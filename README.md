@@ -3,11 +3,22 @@
 ![klotski stages](https://farm6.staticflickr.com/5481/14621883763_5620bf091e_z_d.jpg)
 (img [via flickr](https://www.flickr.com/photos/18099895@N06/14621883763))
 
-Solve the klotski (sliding block) puzzle by moving the red block to the marked area. _W A S D_ to move the cursor. Hold down _shift_ to move the shape beneath it, when the way is clear. Prints test results to the console (so debugging doesn't work with IE; Opera needs to replace termin.log() function).
+Solve the klotski (sliding block) puzzle by moving the red block to the marked area.
 
 Released under [MIT license](http://opensource.org/licenses/MIT). You know, because I [didn't invent](http://en.wikipedia.org/wiki/Klotski) klotski.
 
-Status : active (2017 Feb)
+Status : /web/client\_server - active (2017 Feb) /web/standalone\_js - complete
+
+### Run
+
+standalone\_js: open /web/standalone\_js/klotski.html , play.
+
+client\_server: Compile and run jar from /src (server runs the game), open /web/client\_server/drawKlot.html (client presents the game) , play. build.gradle included for your convenience.
+> Dependencies - [TooTallNate websockets](https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.3.0/) 1.3 and [Gson](https://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.0/) 2.8
+
+### Play
+
+_W A S D_ or arrow keys to move the cursor. Hold down _shift_ to move the shape beneath it, when the way is clear.
 
 ### Future directions
 
