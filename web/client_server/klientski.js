@@ -6,7 +6,7 @@ Network client that mediates a Klotski game
 
 
 const termin = function() {};
-termin.log = function( message )
+termin.log = function l( message )
 {
 	try
 	{
@@ -22,7 +22,7 @@ termin.log = function( message )
 // drawing is in klotCanvas.js
 
 
-// input
+// input is in letterInput.js
 
 
 function keyboardInput( ev )
@@ -31,7 +31,7 @@ function keyboardInput( ev )
 	if ( firstPass != null )
 	{
 		channel.send( JSON.stringify( { 'requestType' : 'key',
-			'buttonVal': '', 'moveVal': firstPass } )
+			'val': firstPass } )
 		);
 	}
 }
@@ -40,7 +40,7 @@ function keyboardInput( ev )
 function clickedSaveStateBtn( which )
 {
 	channel.send( JSON.stringify( { 'requestType' : 'button',
-			'buttonVal': which, 'moveVal': '' } ) );
+			'val': which } ) );
 }
 
 
@@ -68,9 +68,10 @@ function socketSupported()
 
 var channel;
 
+
 function prepSocket()
 {
-	channel = new WebSocket( "ws://localhost:9998" );
+	channel = new WebSocket( "ws://127.0.0.1:9998" );
 	channel.onopen = function coo()
 	{
 		termin.log( 'server says it\'s listening, but for how long?' );
@@ -107,14 +108,21 @@ function pageReady()
 	}
 	else
 	{
-		window.addEventListener( "keydown", letterPressed, true );
+		if ( !!window.StyleMedia ) // could be IE, but whatever
+     	{
+     		// yay, localhost loopback is default broken
+     		termin.log( 'yay, enable hard mode for me, MS engineers' );
+     		const instruction = 'Look, Edge is going to be too hard to make it work. Use chrome or firefox this time. If you want to try anyway, use the answer @ http://stackoverflow.com/a/32767256';
+     		document.getElementById( "hiddenMessage" ).textContent = instruction;
+     	}
+		window.addEventListener( 'keydown', keyboardInput, true );
 		 	// NOTE won't work with IE < 9, but neither will canvas
 		prepSocket();
 	}
 }
 
 
-window.addEventListener( "load", pageReady, false );
+window.addEventListener( 'load', pageReady, false );
 
 
 

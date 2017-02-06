@@ -8,8 +8,7 @@ package ws.nzen.webIo;
 public class KlientskiRequest
 {
 	private String requestType;
-	private String buttonVal;
-	private String moveVal;
+	private String val;
 
 
 	public String getRequestType()
@@ -18,15 +17,9 @@ public class KlientskiRequest
 	}
 
 
-	public String getButtonVal()
+	public String getVal()
 	{
-		return buttonVal;
-	}
-
-
-	public String getMoveVal()
-	{
-		return moveVal;
+		return val;
 	}
 }
 

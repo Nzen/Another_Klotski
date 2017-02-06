@@ -52,7 +52,6 @@ public class KlotBoardReply
 		return restoreError;
 	}
 
-
 	public void setRestoreError( boolean restoreError )
 	{
 		this.restoreError = restoreError;
@@ -62,7 +61,6 @@ public class KlotBoardReply
 	public boolean isHaveWon() {
 		return haveWon;
 	}
-
 
 	public void setHaveWon( boolean haveWon )
 	{

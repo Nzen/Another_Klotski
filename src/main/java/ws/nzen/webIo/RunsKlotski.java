@@ -4,6 +4,8 @@ released under terms of ../../../../../../LICENSE (x11 style) */
 
 package ws.nzen.webIo;
 
+import ws.nzen.klotski.Board;
+
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
@@ -22,6 +24,7 @@ import ws.nzen.klotski.BlockCorner;
 public class RunsKlotski extends WebSocketServer
 {
 	private Gson jsParser = new Gson();
+	private Board gameCurrently = new Board();
 
 	public static void main( String[] args ) throws UnknownHostException
 	{
@@ -92,82 +95,22 @@ public class RunsKlotski extends WebSocketServer
 		{
 			case "button" :
 			{
+				// gameCurrently.applyChange( msgInAmber.getVal() );
 				break;
 			}
-			case "key" : // ASK key or move? will I still support ~%
+			case "key" :
 			{
-				reply = someBoard();
+				// gameCurrently.applyMove( msgInAmber.getVal() );
+				reply = jsParser.toJson( gameCurrently.prepForWire() );
 				break;
 			}
 			case "echo" :
 			default :
 			{
 				reply = echoJsonMsg( json );
-				break;
 			}
 		}
 		return reply;
-	}
-
-
-	private String someBoard()
-	{
-		KlotBoardReply randomBoard = new KlotBoardReply();
-		randomBoard.setCursorCoordinates( 1, 4 );
-		randomBoard.setHaveWon( false );
-		randomBoard.setMoves( 34 );
-		randomBoard.setRestoreError( false );
-		randomBoard.setTiles( new int[][]
-			{
-				new int[]
-				{
-					BlockCorner.tallTop.getJsVal(),
-					BlockCorner.tallBottom.getJsVal(), 
-					BlockCorner.tallTop.getJsVal(), 
-					BlockCorner.tallBottom.getJsVal(), 
-					BlockCorner.single.getJsVal(), 
-				},
-				new int[]
-				{
-					BlockCorner.bigTopLeft.getJsVal(),
-					BlockCorner.bigBottomLeft.getJsVal(), 
-					BlockCorner.wideLeft.getJsVal(), 
-					BlockCorner.single.getJsVal(), 
-					BlockCorner.empty.getJsVal(), 
-				},
-				new int[]
-				{
-					BlockCorner.bigTopRight.getJsVal(),
-					BlockCorner.bigBottomRight.getJsVal(), 
-					BlockCorner.wideRight.getJsVal(), 
-					BlockCorner.single.getJsVal(), 
-					BlockCorner.empty.getJsVal(), 
-				},
-				new int[]
-				{
-					BlockCorner.tallTop.getJsVal(),
-					BlockCorner.tallBottom.getJsVal(), 
-					BlockCorner.tallTop.getJsVal(), 
-					BlockCorner.tallBottom.getJsVal(), 
-					BlockCorner.single.getJsVal(), 
-				}
-			}
-		);
-		return jsParser.toJson( randomBoard, KlotBoardReply.class );
-		/*
-		var p = new Cflag();
-		drawBoard( { "moves": 2,
-			"cursor": { "xC": 1, "yC": 0 },
-			"restoreError": false,
-			"haveWon": false,
-			"tiles": new Array( 	// transpose permits tiles[x][y]
-				[p.tt, p.tb, p.tt, p.tb, p.s_],
-				[p.nw, p.sw, p.wl, p.s_, p.o_],
-				[p.ne, p.se, p.wr, p.s_, p.o_],
-				[p.tt, p.tb, p.tt, p.tb, p.s_]
-			)
-		} );
-	*/
 	}
 
 
