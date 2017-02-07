@@ -29,7 +29,8 @@ public enum BlockCorner
 	bigTopLeft( 36, true, new boolean[]{ false, false, true, true } ),
 	bigTopRight( 37, true, new boolean[]{ false, true, true, false } ),
 	bigBottomLeft( 38, true, new boolean[]{ true, false, false, true } ),
-	bigBottomRight( 39, true, new boolean[]{ true, true, false, false } );
+	bigBottomRight( 39, true, new boolean[]{ true, true, false, false } ),
+	border( -1, false, new boolean[]{ false, false, false, false } );
 
 
 	private int notOrdinal; // since it is shared across the lang boundary

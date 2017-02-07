@@ -35,6 +35,35 @@ public enum Direction
 		}
 		}
 	}
+
+
+	public static Direction reverse( Direction initial )
+	{
+		switch ( initial )
+		{
+		case below :
+		{
+			return above;
+		}
+		case left :
+		{
+			return left;
+		}
+		case above :
+		{
+			return below;
+		}
+		case right :
+		{
+			return right;
+		}
+		default :
+		{
+			return inapplicable;
+		}
+		}
+	}
+
 }
 
 

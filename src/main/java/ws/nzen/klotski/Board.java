@@ -20,43 +20,84 @@ public class Board
 	} // IMPROVE add a restoration constructor
 
 
+	/** swaps two adjacent cells within the board;
+	 * caller responsible for related cell integrity */
+	boolean swap( int xx, int yy, Direction headed )
+	{
+		final boolean worked = true;
+		// initial is out of bounds
+		if ( withinBounds( xx, yy ) )
+		{
+			return ! worked;
+		}
+		boolean isX = true;
+		int targXx = coordinateFrom( headed, xx, isX );
+		int targYy = coordinateFrom( headed, yy, ! isX );
+		// target is out of bounds
+		if ( withinBounds( targXx, targYy ) )
+		{
+			return ! worked;
+		}
+		else
+		{
+			BlockCorner hook = layout[ xx ][ yy ];
+			layout[ xx ][ yy ] = layout[ targXx ][ targYy ];
+			layout[ targXx ][ targYy ] = hook;
+			return worked;
+		}
+	}
+
+
 	private BlockCorner[][] initialConfiguration()
 	{
 		return new BlockCorner[][]
-				{
-						new BlockCorner[]
-								{
-										BlockCorner.tallTop,
-										BlockCorner.tallBottom,
-										BlockCorner.tallTop,
-										BlockCorner.tallBottom,
-										BlockCorner.single
-								},
-						new BlockCorner[]
-								{
-										BlockCorner.bigTopLeft,
-										BlockCorner.bigBottomLeft,
-										BlockCorner.wideLeft,
-										BlockCorner.single,
-										BlockCorner.empty
-								},
-						new BlockCorner[]
-								{
-										BlockCorner.bigTopRight,
-										BlockCorner.bigBottomRight,
-										BlockCorner.wideRight,
-										BlockCorner.single,
-										BlockCorner.empty
-								},
-						new BlockCorner[]
-								{
-										BlockCorner.tallTop,
-										BlockCorner.tallBottom,
-										BlockCorner.tallTop,
-										BlockCorner.tallBottom,
-										BlockCorner.single
-								}
-				};
+			{
+				new BlockCorner[]
+					{
+						BlockCorner.tallTop,
+						BlockCorner.tallBottom,
+						BlockCorner.tallTop,
+						BlockCorner.tallBottom,
+						BlockCorner.single
+					},
+				new BlockCorner[]
+					{
+						BlockCorner.bigTopLeft,
+						BlockCorner.bigBottomLeft,
+						BlockCorner.wideLeft,
+						BlockCorner.single,
+						BlockCorner.empty
+					},
+				new BlockCorner[]
+					{
+						BlockCorner.bigTopRight,
+						BlockCorner.bigBottomRight,
+						BlockCorner.wideRight,
+						BlockCorner.single,
+						BlockCorner.empty
+					},
+				new BlockCorner[]
+					{
+						BlockCorner.tallTop,
+						BlockCorner.tallBottom,
+						BlockCorner.tallTop,
+						BlockCorner.tallBottom,
+						BlockCorner.single
+					}
+			};
+	}
+
+
+	BlockCorner cellIs( int xx, int yy )
+	{
+		if ( withinBounds( xx, yy ) )
+		{
+			return layout[ xx ][ yy ];
+		}
+		else
+		{
+			return BlockCorner.border;
+		}
 	}
 
 
@@ -83,18 +124,66 @@ public class Board
 	}
 
 
-	private class Move
+	int coordinateFrom( Direction pointing, int coordinate, boolean isX )
 	{
-		boolean endsGame()
+		switch ( pointing )
 		{
-			return false;
+			case above :
+			{
+				if ( isX )
+				{
+					return coordinate;
+				}
+				else
+				{
+					return coordinate -1;
+				}
+			}
+			case left :
+			{
+				if ( isX )
+				{
+					return coordinate -1;
+				}
+				else
+				{
+					return coordinate;
+				}
+			}
+			case below :
+			{
+				if ( isX )
+				{
+					return coordinate;
+				}
+				else
+				{
+					return coordinate +1;
+				}
+			}
+			case right :
+			{
+				if ( isX )
+				{
+					return coordinate +1;
+				}
+				else
+				{
+					return coordinate;
+				}
+			}
+			default :
+			{
+				return coordinate;
+			}
 		}
+	}
 
 
-		boolean valid()
-		{
-			return true;
-		}
+	private boolean withinBounds( int xx, int yy )
+	{
+		return xx < 0 || xx >= layout.length
+				|| yy < 0 || yy > layout[ 0 ].length;
 	}
 
 }
