@@ -68,34 +68,14 @@ public class Board
 		}
 		char moveFlag = moveInput.charAt( 0 );
 		Direction heading = Direction.fromLetter( moveInput );
-		if ( true )// Character.isUpperCase( moveFlag ) )
+		if ( Character.isUpperCase( moveFlag ) )
+		{
+			return movePiece( heading );
+		}
+		else
 		{
 			return moveCursor( heading );
 		}
-		switch ( moveInput )
-		{
-		case "w" :
-		{
-			break;
-		}
-		case "a" :
-		{
-			break;
-		}
-		case "s" :
-		{
-			break;
-		}
-		case "d" :
-		{
-			break;
-		}
-		default :
-		{
-			break;
-		}
-		}
-		return false;
 	}
 
 
@@ -114,13 +94,40 @@ public class Board
 	}
 
 
+	private boolean movePiece( Direction heading )
+	{
+		boolean forHoriz = true;
+		int targXx = coordinateFrom( heading, cursorXx, forHoriz );
+		int targYy = coordinateFrom( heading, cursorYy, ! forHoriz );
+		BlockCorner currentFocus = cellIs( cursorXx, cursorYy );
+		BlockCorner targetType = cellIs( targXx, targYy );
+		if ( targetType != BlockCorner.empty )
+		{
+			return false;
+		}
+		Move pieceAwareness = Move.factoryOrWhatever( heading,
+				cursorXx, cursorYy, currentFocus );
+		if ( pieceAwareness == null )
+		{
+			return false;
+		}
+		boolean worked = pieceAwareness.applyTo( this );
+		if ( worked )
+		{
+			worked &= moveCursor( heading );
+			moves++; // IMPROVE legacy decrements if it was the reverse of previous direction
+		}
+		return worked;
+	}
+
+
 	/** swaps two adjacent cells within the board;
 	 * caller responsible for related cell integrity */
 	boolean swap( int xx, int yy, Direction headed )
 	{
 		final boolean worked = true;
 		// initial is out of bounds
-		if ( withinBounds( xx, yy ) )
+		if ( ! withinBounds( xx, yy ) )
 		{
 			return ! worked;
 		}
@@ -128,7 +135,7 @@ public class Board
 		int targXx = coordinateFrom( headed, xx, isX );
 		int targYy = coordinateFrom( headed, yy, ! isX );
 		// target is out of bounds
-		if ( withinBounds( targXx, targYy ) )
+		if ( ! withinBounds( targXx, targYy ) )
 		{
 			return ! worked;
 		}

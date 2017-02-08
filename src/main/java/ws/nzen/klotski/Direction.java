@@ -7,7 +7,18 @@ package ws.nzen.klotski;
 /** Common values with webpage to represent pieces of blocks on the board */
 public enum Direction
 {
-	above, below, left, right, inapplicable;
+	above( false ),
+	below( false ),
+	left( true ),
+	right( true ),
+	inapplicable( false );
+
+	private boolean isHorizontal;
+
+	private Direction( boolean sideToSide )
+	{
+		isHorizontal = sideToSide;
+	}
 
 	public static Direction fromLetter( String letter )
 	{
@@ -62,6 +73,12 @@ public enum Direction
 			return inapplicable;
 		}
 		}
+	}
+
+
+	public boolean isHorizontal()
+	{
+		return isHorizontal;
 	}
 
 }
