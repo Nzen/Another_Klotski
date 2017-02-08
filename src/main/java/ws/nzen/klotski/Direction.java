@@ -9,7 +9,7 @@ public enum Direction
 {
 	above, below, left, right, inapplicable;
 
-	public Direction fromLetter( String letter )
+	public static Direction fromLetter( String letter )
 	{
 		switch ( letter.toLowerCase() )
 		{

@@ -20,34 +20,6 @@ public class Board
 	} // IMPROVE add a restoration constructor
 
 
-	/** swaps two adjacent cells within the board;
-	 * caller responsible for related cell integrity */
-	boolean swap( int xx, int yy, Direction headed )
-	{
-		final boolean worked = true;
-		// initial is out of bounds
-		if ( withinBounds( xx, yy ) )
-		{
-			return ! worked;
-		}
-		boolean isX = true;
-		int targXx = coordinateFrom( headed, xx, isX );
-		int targYy = coordinateFrom( headed, yy, ! isX );
-		// target is out of bounds
-		if ( withinBounds( targXx, targYy ) )
-		{
-			return ! worked;
-		}
-		else
-		{
-			BlockCorner hook = layout[ xx ][ yy ];
-			layout[ xx ][ yy ] = layout[ targXx ][ targYy ];
-			layout[ targXx ][ targYy ] = hook;
-			return worked;
-		}
-	}
-
-
 	private BlockCorner[][] initialConfiguration()
 	{
 		return new BlockCorner[][]
@@ -85,6 +57,88 @@ public class Board
 						BlockCorner.single
 					}
 			};
+	}
+
+
+	public boolean applyInput( String moveInput )
+	{
+		if ( moveInput == null || moveInput.isEmpty() )
+		{
+			return false;
+		}
+		char moveFlag = moveInput.charAt( 0 );
+		Direction heading = Direction.fromLetter( moveInput );
+		if ( true )// Character.isUpperCase( moveFlag ) )
+		{
+			return moveCursor( heading );
+		}
+		switch ( moveInput )
+		{
+		case "w" :
+		{
+			break;
+		}
+		case "a" :
+		{
+			break;
+		}
+		case "s" :
+		{
+			break;
+		}
+		case "d" :
+		{
+			break;
+		}
+		default :
+		{
+			break;
+		}
+		}
+		return false;
+	}
+
+
+	private boolean moveCursor( Direction heading )
+	{
+		boolean forHoriz = true;
+		int targXx = coordinateFrom( heading, cursorXx, forHoriz );
+		int targYy = coordinateFrom( heading, cursorYy, ! forHoriz );
+		boolean validness = cellIs( targXx, targYy ) != BlockCorner.border;
+		if ( validness )
+		{
+			cursorXx = targXx;
+			cursorYy = targYy;
+		}
+		return validness;
+	}
+
+
+	/** swaps two adjacent cells within the board;
+	 * caller responsible for related cell integrity */
+	boolean swap( int xx, int yy, Direction headed )
+	{
+		final boolean worked = true;
+		// initial is out of bounds
+		if ( withinBounds( xx, yy ) )
+		{
+			return ! worked;
+		}
+		boolean isX = true;
+		int targXx = coordinateFrom( headed, xx, isX );
+		int targYy = coordinateFrom( headed, yy, ! isX );
+		// target is out of bounds
+		if ( withinBounds( targXx, targYy ) )
+		{
+			return ! worked;
+		}
+		else
+		{
+			BlockCorner hook = layout[ xx ][ yy ];
+			layout[ xx ][ yy ] = layout[ targXx ][ targYy ];
+			layout[ targXx ][ targYy ] = hook;
+			return worked;
+		}
 	}
 
 
@@ -182,8 +236,8 @@ public class Board
 
 	private boolean withinBounds( int xx, int yy )
 	{
-		return xx < 0 || xx >= layout.length
-				|| yy < 0 || yy > layout[ 0 ].length;
+		return xx >= 0 || xx < layout.length
+				|| yy >= 0 || yy < layout[ 0 ].length;
 	}
 
 }

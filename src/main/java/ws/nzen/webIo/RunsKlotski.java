@@ -61,6 +61,8 @@ public class RunsKlotski extends WebSocketServer
 	public void onOpen( WebSocket conn, ClientHandshake handshake )
 	{
 		System.out.println( "began with "+ conn.getLocalSocketAddress() );
+		// show initial board
+		conn.send( jsParser.toJson( gameCurrently.prepForWire() ) );
 	}
 
 
@@ -82,7 +84,7 @@ public class RunsKlotski extends WebSocketServer
 	@Override
 	public void onError( WebSocket conn, Exception ex )
 	{
-		System.err.println( "failed with "+ conn.getLocalSocketAddress() +"\n"+ ex );
+		System.err.println( "failed with "+ conn.getLocalSocketAddress() +"\n\t"+ ex );
 	}
 
 
@@ -100,7 +102,7 @@ public class RunsKlotski extends WebSocketServer
 			}
 			case "key" :
 			{
-				// gameCurrently.applyMove( msgInAmber.getVal() );
+				gameCurrently.applyInput( msgInAmber.getVal() );
 				reply = jsParser.toJson( gameCurrently.prepForWire() );
 				break;
 			}
