@@ -14,6 +14,7 @@ public class Move
 	private BlockCorner facePiece;
 	private Direction faceDirFromStart;
 	private BlockCorner[] occludedPieces; // assumes start and then face piece
+	// IMPROVE didn't I already put this info in BlockCorner.relatedPieces ?
 
 
 	public Move( Direction going, int xx, int yy, BlockCorner corner,
@@ -179,12 +180,12 @@ public class Move
 	public boolean applyTo( Board landscape )
 	{
 		final boolean isXx = true;
-		BlockCorner cellPeek = landscape.cellIs( startXx, startYy );
-		if ( cellPeek == BlockCorner.empty || cellPeek == BlockCorner.border )
+		if ( startPiece == BlockCorner.empty
+				|| startPiece == BlockCorner.border )
 		{
 			return false;
 		}
-		cellPeek = landscape.cellIs(
+		BlockCorner cellPeek = landscape.cellIs(
 				landscape.coordinateFrom( headed, startXx, isXx ),
 				landscape.coordinateFrom( headed, startYy, ! isXx ) );
 		if ( cellPeek != BlockCorner.empty )

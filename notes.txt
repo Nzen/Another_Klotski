@@ -3,13 +3,13 @@
 
 -- master --
 
-board exists, board handles valid movement, creates klotboardresponse
-
 game restoreer exists, server tries to restore on open connection, serializes board and state, deserializes
 
 tests
 
 -- javax-websockets --
+
+merge head onto javax
 
 get all the sinning tyrus jars, recopy the annotated server thing and check javadoc for programmatic server. this seems too heavy for my use case.
 

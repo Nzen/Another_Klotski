@@ -58,7 +58,7 @@ public enum Direction
 		}
 		case left :
 		{
-			return left;
+			return right;
 		}
 		case above :
 		{
@@ -66,7 +66,7 @@ public enum Direction
 		}
 		case right :
 		{
-			return right;
+			return left;
 		}
 		default :
 		{
